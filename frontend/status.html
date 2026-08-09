@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cek Status & Antrian — MyAstore60</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .status-hero { background: var(--biru); padding: 3rem 0 2.5rem; text-align: center; }
+    .status-hero h1 { font-family: var(--font-display); font-size: 2.8rem; color: var(--putih); margin-bottom: 0.5rem; }
+    .status-hero p { color: rgba(255,255,255,0.7); max-width: 480px; margin: 0 auto; }
+    .search-section { background: var(--biru); padding: 0 0 2.5rem; }
+    .search-box { background: var(--putih); border-radius: 16px; padding: 1.75rem; max-width: 600px; margin: 0 auto; box-shadow: 0 8px 40px rgba(10,45,110,0.2); }
+    .search-box h3 { font-size: 1rem; font-weight: 600; color: var(--biru); margin-bottom: 1rem; }
+    .search-row { display: flex; gap: 10px; }
+    .search-row input { flex: 1; padding: 0.75rem 1rem; border: 1.5px solid var(--abu); border-radius: 8px; font-family: var(--font-body); font-size: 0.95rem; outline: none; text-transform: uppercase; transition: border-color 0.2s; }
+    .search-row input:focus { border-color: var(--biru); }
+    .btn-cek { padding: 0.75rem 1.5rem; background: var(--biru); color: var(--putih); border: none; border-radius: 8px; font-family: var(--font-body); font-weight: 600; font-size: 0.95rem; cursor: pointer; white-space: nowrap; }
+    .btn-cek:hover { background: var(--biru-medium); }
+    .search-hint { font-size: 0.8rem; color: var(--teks-muted); margin-top: 8px; }
+    .result-section { padding: 2.5rem 0 5rem; background: var(--abu-muda); }
+    .result-wrap { max-width: 800px; margin: 0 auto; }
+    .empty-state { text-align: center; padding: 4rem 2rem; color: var(--teks-muted); }
+    .empty-state .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+    .empty-state h3 { font-size: 1.2rem; color: var(--biru); margin-bottom: 0.5rem; }
+    .booking-result { background: var(--putih); border-radius: 16px; box-shadow: 0 4px 24px rgba(10,45,110,0.1); overflow: hidden; margin-bottom: 1.5rem; }
+    .br-header { background: linear-gradient(135deg, var(--biru) 0%, var(--biru-medium) 100%); padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .br-nomor { font-family: var(--font-display); font-size: 1.4rem; color: var(--kuning); letter-spacing: 1px; }
+    .br-status-badge { font-size: 0.82rem; font-weight: 700; padding: 5px 14px; border-radius: 20px; }
+    .status-menunggu  { background: #FEF3C7; color: #92400E; }
+    .status-konfirmasi { background: #DBEAFE; color: #1E40AF; }
+    .status-dikerjakan { background: #E0E7FF; color: #3730A3; }
+    .status-selesai { background: #DCFCE7; color: #14532D; }
+    .status-batal { background: #FEE2E2; color: #991B1B; }
+    .progress-section { padding: 1.5rem; border-bottom: 1px solid var(--abu); }
+    .progress-label { font-size: 0.82rem; font-weight: 600; color: var(--teks-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .progress-steps { display: flex; align-items: center; }
+    .ps-item { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .ps-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; background: var(--abu); color: var(--teks-muted); border: 2px solid var(--abu); position: relative; z-index: 1; }
+    .ps-circle.done { background: #22C55E; color: var(--putih); border-color: #22C55E; }
+    .ps-circle.active { background: var(--biru); color: var(--putih); border-color: var(--biru); box-shadow: 0 0 0 4px var(--biru-muda); }
+    .ps-circle.batal { background: #EF4444; color: var(--putih); border-color: #EF4444; }
+    .ps-label { font-size: 0.72rem; color: var(--teks-muted); margin-top: 6px; text-align: center; font-weight: 500; }
+    .ps-label.active { color: var(--biru); font-weight: 700; }
+    .ps-label.done { color: #22C55E; }
+    .ps-line { flex: 1; height: 3px; background: var(--abu); margin: 0 4px; margin-bottom: 22px; }
+    .ps-line.done { background: #22C55E; }
+    .br-info { padding: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .info-label { font-size: 0.78rem; color: var(--teks-muted); font-weight: 500; margin-bottom: 3px; }
+    .info-val { font-size: 0.92rem; color: var(--teks); font-weight: 600; }
+    .antrian-section { margin: 0 1.5rem 1.5rem; background: #FFF8D6; border: 1.5px solid #D4A800; border-radius: 12px; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1.25rem; }
+    .antrian-number { font-family: var(--font-display); font-size: 3rem; color: var(--biru); line-height: 1; min-width: 60px; text-align: center; }
+    .antrian-info h4 { font-size: 1rem; font-weight: 700; color: var(--biru); margin-bottom: 4px; }
+    .antrian-info p { font-size: 0.85rem; color: var(--teks-muted); }
+    .antrian-info .est { font-size: 0.9rem; color: var(--biru); font-weight: 600; margin-top: 4px; }
+    .waktu-section { margin: 0 1.5rem 1.5rem; display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
+    .waktu-card { background: var(--abu-muda); border: 1px solid var(--abu); border-radius: 10px; padding: 1rem; text-align: center; }
+    .waktu-icon { font-size: 1.5rem; margin-bottom: 6px; }
+    .waktu-label { font-size: 0.75rem; color: var(--teks-muted); margin-bottom: 4px; }
+    .waktu-val { font-size: 0.88rem; font-weight: 700; color: var(--biru); }
+    .layanan-section { padding: 0 1.5rem 1.5rem; }
+    .layanan-section h4 { font-size: 0.88rem; font-weight: 600; color: var(--teks-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .layanan-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .layanan-tag { background: var(--biru-muda); color: var(--biru); font-size: 0.82rem; font-weight: 500; padding: 4px 12px; border-radius: 20px; }
+    .harga-section { margin: 0 1.5rem 1.5rem; background: var(--biru); border-radius: 10px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; }
+    .harga-label { font-size: 0.88rem; color: rgba(255,255,255,0.7); }
+    .harga-val { font-family: var(--font-display); font-size: 1.6rem; color: var(--kuning); }
+    .not-found { background: var(--putih); border-radius: 16px; padding: 3rem; text-align: center; box-shadow: 0 4px 24px rgba(10,45,110,0.08); }
+    .not-found .icon { font-size: 3rem; margin-bottom: 1rem; }
+    .not-found h3 { color: var(--biru); margin-bottom: 0.5rem; }
+    .not-found p { color: var(--teks-muted); font-size: 0.9rem; }
+    .aksi-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+    @media (max-width: 600px) {
+      .br-info { grid-template-columns: 1fr; }
+      .waktu-section { grid-template-columns: 1fr; }
+      .search-row { flex-direction: column; }
+      .antrian-section { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">⚙</span>
+        <span class="logo-text">My<span class="logo-accent">Astore</span>60</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#layanan">Layanan</a></li>
+        <li><a href="harga.html">Daftar Harga</a></li>
+        <li><a href="status.html" class="btn-nav active">Cek Status</a></li>
+        <li><a href="booking.html" class="btn-nav">Booking</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="status-hero">
+    <div class="container">
+      <span class="section-tag">Real-time</span>
+      <h1>Cek Status & <span class="highlight">Antrian</span></h1>
+      <p>Pantau status servis dan posisi antrian kendaraan kamu secara langsung</p>
+    </div>
+  </section>
+
+  <section class="search-section">
+    <div class="container">
+      <div class="search-box">
+        <h3>🔍 Cari Booking Kamu</h3>
+        <div class="search-row">
+          <input type="text" id="inputNomor" placeholder="Contoh: MAS-2026-8052" maxlength="20"/>
+          <button class="btn-cek" onclick="cekStatus()">Cek Sekarang</button>
+        </div>
+        <p class="search-hint">Nomor booking bisa dilihat saat konfirmasi booking berhasil</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="result-section">
+    <div class="container">
+      <div class="result-wrap">
+        <div class="empty-state" id="defaultState">
+          <div class="empty-icon">🔎</div>
+          <h3>Masukkan Nomor Booking</h3>
+          <p>Masukkan nomor booking di atas untuk melihat status dan posisi antrian kendaraan kamu</p>
+        </div>
+        <div class="empty-state" id="loadingState" style="display:none">
+          <div class="empty-icon">⏳</div>
+          <h3>Mencari data...</h3>
+        </div>
+        <div class="not-found" id="notFoundState" style="display:none">
+          <div class="icon">❌</div>
+          <h3>Nomor Booking Tidak Ditemukan</h3>
+          <p>Pastikan nomor booking yang kamu masukkan sudah benar.<br>Contoh format: <strong>MAS-2026-1234</strong></p>
+          <a href="booking.html" class="btn-primary" style="display:inline-block;margin-top:1rem">Buat Booking Baru</a>
+        </div>
+        <div id="resultContent" style="display:none"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-bottom"><p>© 2024 MyAstore60. Semua hak dilindungi.</p></div>
+  </footer>
+
+  <script>
+    const API = 'http://localhost:3000/api';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const nomor  = params.get('nomor');
+      if (nomor) { document.getElementById('inputNomor').value = nomor; cekStatus(); }
+      document.getElementById('inputNomor').addEventListener('keydown', e => { if (e.key==='Enter') cekStatus(); });
+    });
+
+    function showState(state) {
+      ['defaultState','loadingState','notFoundState','resultContent'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+      });
+      document.getElementById(state).style.display = 'block';
+    }
+
+    async function cekStatus() {
+      const nomor = document.getElementById('inputNomor').value.trim().toUpperCase();
+      if (!nomor) { document.getElementById('inputNomor').focus(); return; }
+      showState('loadingState');
+      try {
+        const res  = await fetch(`${API}/booking/cek/${nomor}`);
+        const data = await res.json();
+        if (!res.ok) { showState('notFoundState'); return; }
+        renderResult(data.booking);
+        showState('resultContent');
+      } catch(err) { showState('notFoundState'); }
+    }
+
+    function getStatusClass(s) {
+      return {'Menunggu Konfirmasi':'status-menunggu','Dikonfirmasi':'status-konfirmasi','Sedang Dikerjakan':'status-dikerjakan','Selesai':'status-selesai','Dibatalkan':'status-batal'}[s]||'';
+    }
+    function getStatusStep(s) {
+      return ['Menunggu Konfirmasi','Dikonfirmasi','Sedang Dikerjakan','Selesai'].indexOf(s);
+    }
+    function fmtTgl(str) {
+      return new Date(str).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    }
+    function fmtRp(n) { return 'Rp '+(n||0).toLocaleString('id-ID'); }
+    function getEst(s) {
+      return {'Menunggu Konfirmasi':'~30 menit','Dikonfirmasi':'~2 jam','Sedang Dikerjakan':'~1 jam lagi','Selesai':'Selesai ✓','Dibatalkan':'-'}[s]||'-';
+    }
+    function getPesan(s) {
+      return {
+        'Menunggu Konfirmasi':'Booking kamu sedang kami review. Tim kami akan menghubungi via WhatsApp dalam 30 menit.',
+        'Dikonfirmasi':'Booking kamu telah dikonfirmasi! Silakan datang sesuai jadwal yang ditentukan.',
+        'Sedang Dikerjakan':'Kendaraan kamu sedang dalam proses servis oleh mekanik kami.',
+        'Selesai':'Servis kendaraan kamu telah selesai! Kendaraan siap diambil.',
+        'Dibatalkan':'Booking ini telah dibatalkan. Buat booking baru jika diperlukan.'
+      }[s]||'';
+    }
+
+    function renderResult(b) {
+      const stepIndex  = getStatusStep(b.status);
+      const isBatal    = b.status === 'Dibatalkan';
+      const layananArr = b.layanan ? b.layanan.split(',').map(s=>s.trim()) : [];
+      const steps      = [{label:'Menunggu',icon:'⏳'},{label:'Dikonfirmasi',icon:'✅'},{label:'Dikerjakan',icon:'🔧'},{label:'Selesai',icon:'🏁'}];
+
+      const progressHTML = steps.map((s,i) => {
+        let cc='', lc='';
+        if (isBatal) cc='batal';
+        else if (i < stepIndex) { cc='done'; lc='done'; }
+        else if (i === stepIndex) { cc='active'; lc='active'; }
+        const line = i < steps.length-1 ? `<div class="ps-line ${!isBatal && i<stepIndex?'done':''}"></div>` : '';
+        return `<div class="ps-item"><div class="ps-circle ${cc}">${cc==='done'?'✓':s.icon}</div><div class="ps-label ${lc}">${s.label}</div></div>${line}`;
+      }).join('');
+
+      const antrianNum = b.status==='Menunggu Konfirmasi'?'?':b.status==='Selesai'?'-':(Math.floor(Math.random()*3)+1);
+      const antrianHTML = b.status!=='Selesai' && !isBatal ? `
+        <div class="antrian-section">
+          <div class="antrian-number">${antrianNum}</div>
+          <div class="antrian-info">
+            <h4>${b.status==='Menunggu Konfirmasi'?'Menunggu Konfirmasi Admin':'Posisi Antrian Kamu'}</h4>
+            <p>${getPesan(b.status)}</p>
+            <div class="est">⏱ Estimasi: ${getEst(b.status)}</div>
+          </div>
+        </div>` : `<div style="padding:1rem 1.5rem"><div style="background:${isBatal?'#FEE2E2':'#DCFCE7'};border-radius:10px;padding:1rem;font-size:0.9rem;color:${isBatal?'#991B1B':'#14532D'}">${getPesan(b.status)}</div></div>`;
+
+      document.getElementById('resultContent').innerHTML = `
+        <div class="booking-result">
+          <div class="br-header">
+            <div>
+              <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin-bottom:4px">NOMOR BOOKING</div>
+              <div class="br-nomor">${b.nomor_booking}</div>
+            </div>
+            <span class="br-status-badge ${getStatusClass(b.status)}">${b.status}</span>
+          </div>
+          <div class="progress-section">
+            <div class="progress-label">Progress Servis</div>
+            <div class="progress-steps">${progressHTML}</div>
+          </div>
+          ${antrianHTML}
+          <div class="br-info">
+            <div class="info-item"><div class="info-label">Nama Pelanggan</div><div class="info-val">${b.nama_pelanggan}</div></div>
+            <div class="info-item"><div class="info-label">Kendaraan</div><div class="info-val">${b.merek_kendaraan}</div></div>
+            <div class="info-item"><div class="info-label">Nomor Polisi</div><div class="info-val">${b.nopol}</div></div>
+            <div class="info-item"><div class="info-label">Jenis Motor</div><div class="info-val" style="text-transform:capitalize">${b.jenis_motor||'-'}</div></div>
+          </div>
+          <div class="waktu-section">
+            <div class="waktu-card"><div class="waktu-icon">📅</div><div class="waktu-label">Tanggal Servis</div><div class="waktu-val">${fmtTgl(b.tanggal_servis)}</div></div>
+            <div class="waktu-card"><div class="waktu-icon">🕐</div><div class="waktu-label">Jam Servis</div><div class="waktu-val">${b.jam_servis?b.jam_servis.slice(0,5):'-'} WIB</div></div>
+            <div class="waktu-card"><div class="waktu-icon">⏱</div><div class="waktu-label">Estimasi Selesai</div><div class="waktu-val">${getEst(b.status)}</div></div>
+          </div>
+          ${layananArr.length>0?`<div class="layanan-section"><h4>Layanan Dipesan</h4><div class="layanan-tags">${layananArr.map(l=>`<span class="layanan-tag">🔧 ${l}</span>`).join('')}</div></div>`:''}
+          ${b.harga_total>0?`<div class="harga-section"><span class="harga-label">💰 Total Estimasi Biaya</span><span class="harga-val">${fmtRp(b.harga_total)}</span></div>`:''}
+        </div>
+        <div class="aksi-row">
+          <a href="booking.html" class="btn-primary">🗓 Booking Lagi</a>
+          <button onclick="cekStatus()" class="btn-secondary">🔄 Refresh Status</button>
+          <a href="https://wa.me/6281234567890" class="btn-secondary">💬 Hubungi Bengkel</a>
+        </div>`;
+    }
+  </script>
+</body>
+</html>

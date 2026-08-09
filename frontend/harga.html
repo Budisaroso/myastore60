@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daftar Harga Servis — MyAstore60</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">⚙</span>
+        <span class="logo-text">My<span class="logo-accent">Astore</span>60</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#layanan">Layanan</a></li>
+        <li><a href="harga.html" class="btn-nav active">Daftar Harga</a></li>
+        <li><a href="status.html">Cek Status</a></li>
+        <li><a href="booking.html" class="btn-nav">Booking</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="booking-hero">
+    <div class="container">
+      <div class="booking-hero-text">
+        <span class="section-tag">Transparan & Terjangkau</span>
+        <h1>Daftar Harga<br><span class="highlight">Servis Motor</span></h1>
+        <p>Semua harga sudah termasuk jasa. Harga spare part menyesuaikan kondisi kendaraan.</p>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:2.5rem 0 5rem; background:var(--abu-muda)">
+    <div class="container">
+
+      <!-- FILTER -->
+      <div class="harga-filter-bar">
+        <button class="hf-btn active" data-filter="all"    onclick="hargaFilter('all',this)">Semua</button>
+        <button class="hf-btn" data-filter="bebek"         onclick="hargaFilter('bebek',this)">Bebek</button>
+        <button class="hf-btn" data-filter="matic"         onclick="hargaFilter('matic',this)">Matic</button>
+        <button class="hf-btn" data-filter="kopling"       onclick="hargaFilter('kopling',this)">Kopling</button>
+        <button class="hf-btn" data-filter="kecil"         onclick="hargaFilter('kecil',this)">≤135/125cc</button>
+        <button class="hf-btn" data-filter="besar"         onclick="hargaFilter('besar',this)">≤250cc</button>
+        <button class="hf-btn" data-filter="lengkap"       onclick="hargaFilter('lengkap',this)">Paket Lengkap</button>
+        <button class="hf-btn" data-filter="satuan"        onclick="hargaFilter('satuan',this)">Paket Satuan</button>
+      </div>
+
+      <div id="hargaContent"></div>
+
+      <!-- CTA -->
+      <div style="text-align:center;margin-top:3rem">
+        <p style="color:var(--teks-muted);margin-bottom:1rem">Tertarik? Langsung booking sekarang!</p>
+        <a href="booking.html" class="btn-primary" style="font-size:1rem;padding:0.9rem 2.5rem">🗓 Booking Sekarang</a>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-bottom">
+      <p>© 2024 MyAstore60. Semua hak dilindungi.</p>
+    </div>
+  </footer>
+
+  <script src="js/paket-data.js"></script>
+  <script>
+    function hargaFilter(filter, btn) {
+      document.querySelectorAll('.hf-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderHarga(filter);
+    }
+
+    function renderHarga(filter) {
+      const content = document.getElementById('hargaContent');
+
+      const filtered = PAKET_DATA.filter(p => {
+        const typeMatch = filter === 'all' ||
+          (filter === 'lengkap' && p.type === 'lengkap') ||
+          (filter === 'satuan'  && p.type === 'satuan')  ||
+          (filter !== 'lengkap' && filter !== 'satuan');
+
+        const variantMatch = p.variants.some(v =>
+          filter === 'all' || filter === 'lengkap' || filter === 'satuan' ||
+          v.motor === filter || v.cc === filter
+        );
+
+        return typeMatch && variantMatch;
+      });
+
+      const lengkap = filtered.filter(p => p.type === 'lengkap');
+      const satuan  = filtered.filter(p => p.type === 'satuan');
+
+      let html = '';
+
+      if (lengkap.length > 0) {
+        html += `<div class="harga-section-label">Paket Lengkap</div>`;
+        html += `<div class="harga-grid">`;
+        lengkap.forEach(p => html += buildHargaCard(p, filter));
+        html += `</div>`;
+      }
+      if (satuan.length > 0) {
+        html += `<div class="harga-section-label" style="margin-top:2rem">Paket Satuan</div>`;
+        html += `<div class="harga-grid">`;
+        satuan.forEach(p => html += buildHargaCard(p, filter));
+        html += `</div>`;
+      }
+
+      content.innerHTML = html;
+    }
+
+    function buildHargaCard(p, filter) {
+      const filteredVariants = p.variants.filter(v =>
+        filter === 'all' || filter === 'lengkap' || filter === 'satuan' ||
+        v.motor === filter || v.cc === filter
+      );
+
+      const motors = [...new Set(filteredVariants.map(v => v.motor))];
+      const motorBadges = motors.map(m =>
+        `<span class="mbadge-harga mbadge-${m}">${m.charAt(0).toUpperCase()+m.slice(1)}</span>`
+      ).join('');
+
+      const priceRows = filteredVariants.map(v => {
+        const diskon = Math.round((1 - v.promo / v.normal) * 100);
+        return `
+          <div class="harga-price-row">
+            <span class="hpr-label">${v.label}</span>
+            <div class="hpr-prices">
+              <span class="hpr-normal">${fmt(v.normal)}</span>
+              <span class="hpr-promo">${fmt(v.promo)}</span>
+              <span class="hpr-diskon">-${diskon}%</span>
+            </div>
+          </div>`;
+      }).join('');
+
+      const motor0 = filteredVariants[0]?.motor || 'all';
+      const items = getItems(p, motor0);
+      const itemsHTML = items.length > 0
+        ? `<div class="harga-items">${items.map(i => `<span class="hi-tag">${i}</span>`).join('')}</div>`
+        : '';
+      const freeHTML = p.free
+        ? `<div class="harga-free">🎁 Gratis: ${p.free}</div>`
+        : '';
+
+      return `
+        <div class="harga-card">
+          <div class="hc-head">
+            <div class="hc-title">
+              <span style="font-size:1.3rem">${p.emoji}</span>
+              <span>${p.group}</span>
+            </div>
+            <div class="hc-badges">${motorBadges}</div>
+          </div>
+          <div class="hc-prices">${priceRows}</div>
+          ${itemsHTML}
+          ${freeHTML}
+          <a href="booking.html" class="hc-btn">Booking Paket Ini →</a>
+        </div>`;
+    }
+
+    renderHarga('all');
+  </script>
+</body>
+</html>

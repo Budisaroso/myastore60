@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login Admin — MyAstore60</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --kuning: #F5C400; --biru: #0A2D6E; --biru-medium: #1A4BA8;
+      --putih: #FFFFFF; --abu: #E5E7EB; --abu-muda: #F7F8FA;
+      --teks: #1A1A2E; --teks-muted: #6B7280; --merah: #EF4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: linear-gradient(135deg, var(--biru) 0%, var(--biru-medium) 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-wrap {
+      background: var(--putih);
+      border-radius: 16px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(10,45,110,0.3);
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .login-logo h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      color: var(--biru);
+      letter-spacing: 1px;
+    }
+    .login-logo h1 span { color: var(--kuning); }
+    .login-logo p { color: var(--teks-muted); font-size: 0.85rem; margin-top: 4px; }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--biru);
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--abu);
+      border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus { border-color: var(--biru); }
+    .btn-login {
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--kuning);
+      color: var(--biru);
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: background 0.2s;
+      margin-top: 0.5rem;
+    }
+    .btn-login:hover { background: #D4A800; }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+    .error-box {
+      background: #FEE2E2;
+      color: var(--merah);
+      border: 1px solid #FECACA;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 1.25rem;
+      font-size: 0.85rem;
+      color: var(--teks-muted);
+    }
+    .back-link a { color: var(--biru); font-weight: 600; }
+
+    /* ===== ANIMATED BACKGROUND ===== */
+    .bg-canvas {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+      background: linear-gradient(135deg, var(--biru) 0%, #0d3a8a 50%, var(--biru-medium) 100%);
+    }
+
+    /* Floating gear icons */
+    .gear {
+      position: absolute;
+      color: rgba(255,255,255,0.06);
+      font-size: 80px;
+      animation: floatGear linear infinite;
+      user-select: none;
+      pointer-events: none;
+    }
+    @keyframes floatGear {
+      0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* Glowing orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.15;
+      animation: orbFloat ease-in-out infinite;
+      pointer-events: none;
+    }
+    .orb-1 { width:300px; height:300px; background:var(--kuning); top:-100px; left:-100px; animation-duration:8s; }
+    .orb-2 { width:250px; height:250px; background:#3B82F6; bottom:-80px; right:-80px; animation-duration:10s; animation-delay:-3s; }
+    .orb-3 { width:200px; height:200px; background:var(--kuning); top:50%; right:10%; animation-duration:7s; animation-delay:-5s; }
+    .orb-4 { width:180px; height:180px; background:#60A5FA; bottom:30%; left:5%; animation-duration:9s; animation-delay:-2s; }
+    @keyframes orbFloat {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33%      { transform: translate(20px,-20px) scale(1.1); }
+      66%      { transform: translate(-15px,15px) scale(0.95); }
+    }
+
+    /* Particles */
+    .particle {
+      position: absolute;
+      width: 4px; height: 4px;
+      background: rgba(245,196,0,0.6);
+      border-radius: 50%;
+      animation: particleFloat linear infinite;
+      pointer-events: none;
+    }
+    @keyframes particleFloat {
+      0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 0.8; }
+      100% { transform: translateY(-10vh) translateX(30px); opacity: 0; }
+    }
+
+    /* Grid lines */
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    /* Scan line */
+    .scan-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(245,196,0,0.3), transparent);
+      animation: scanLine 6s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes scanLine {
+      0%   { top: -2px; }
+      100% { top: 100%; }
+    }
+
+    /* Wrench icons floating */
+    .tool-icon {
+      position: absolute;
+      font-size: 24px;
+      opacity: 0.08;
+      animation: toolFloat linear infinite;
+      pointer-events: none;
+    }
+    @keyframes toolFloat {
+      0%   { transform: translateY(110vh) rotate(-20deg); opacity:0; }
+      10%  { opacity: 0.08; }
+      90%  { opacity: 0.08; }
+      100% { transform: translateY(-10vh) rotate(20deg); opacity:0; }
+    }
+
+    /* Pastikan form di atas canvas */
+    .login-wrap { position: relative; z-index: 10; }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-logo">
+      <h1>⚙ My<span>Astore</span>60</h1>
+      <p>Panel Admin Bengkel</p>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div class="form-group">
+      <label>Email Admin</label>
+      <input type="email" id="email" placeholder="admin@myastore60.com" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••" />
+    </div>
+    <button class="btn-login" id="btnLogin" onclick="doLogin()">Masuk ke Dashboard</button>
+
+    <div class="back-link">
+      <a href="../index.html">← Kembali ke Website</a>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:3000/api';
+
+    // Kalau sudah login, langsung ke dashboard
+    if (localStorage.getItem('admin_token')) {
+      window.location.href = 'dashboard.html';
+    }
+
+    async function doLogin() {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errBox   = document.getElementById('errorBox');
+      const btn      = document.getElementById('btnLogin');
+
+      errBox.style.display = 'none';
+
+      if (!email || !password) {
+        errBox.textContent = 'Email dan password wajib diisi';
+        errBox.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = '⏳ Masuk...';
+      btn.disabled = true;
+
+      try {
+        const res  = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.user.role === 'admin') {
+          localStorage.setItem('admin_token', data.token);
+          localStorage.setItem('admin_user',  JSON.stringify(data.user));
+          window.location.href = 'dashboard.html';
+        } else if (res.ok && data.user.role !== 'admin') {
+          errBox.textContent = 'Akun ini bukan admin';
+          errBox.style.display = 'block';
+        } else {
+          errBox.textContent = data.message || 'Login gagal';
+          errBox.style.display = 'block';
+        }
+      } catch (err) {
+        errBox.textContent = 'Gagal terhubung ke server';
+        errBox.style.display = 'block';
+      }
+
+      btn.textContent = 'Masuk ke Dashboard';
+      btn.disabled = false;
+    }
+
+    // Enter key support
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+  </script>
+
+  <!-- ANIMATED BACKGROUND -->
+  <div class="bg-canvas" id="bgCanvas">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+    <div class="grid-overlay"></div>
+    <div class="scan-line"></div>
+  </div>
+
+  <script>
+    // Generate gear icons
+    const canvas = document.getElementById('bgCanvas');
+    const gearIcons = ['⚙','🔧','🔩','⚙'];
+    const toolIcons = ['🔧','🔩','🛠','⚙'];
+
+    // Buat 8 gear floating
+    for (let i = 0; i < 8; i++) {
+      const gear = document.createElement('div');
+      gear.className = 'gear';
+      gear.textContent = gearIcons[i % gearIcons.length];
+      gear.style.cssText = `
+        left: ${Math.random() * 100}%;
+        font-size: ${60 + Math.random() * 80}px;
+        animation-duration: ${12 + Math.random() * 15}s;
+        animation-delay: ${-Math.random() * 20}s;
+      `;
+      canvas.appendChild(gear);
+    }
+
+    // Buat 6 tool icons
+    for (let i = 0; i < 6; i++) {
+      const tool = document.createElement('div');
+      tool.className = 'tool-icon';
+      tool.textContent = toolIcons[i % toolIcons.length];
+      tool.style.cssText = `
+        left: ${Math.random() * 100}%;
+        font-size: ${18 + Math.random() * 20}px;
+        animation-duration: ${10 + Math.random() * 12}s;
+        animation-delay: ${-Math.random() * 15}s;
+      `;
+      canvas.appendChild(tool);
+    }
+
+    // Buat 20 partikel
+    for (let i = 0; i < 20; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.cssText = `
+        left: ${Math.random() * 100}%;
+        width: ${2 + Math.random() * 4}px;
+        height: ${2 + Math.random() * 4}px;
+        animation-duration: ${8 + Math.random() * 12}s;
+        animation-delay: ${-Math.random() * 15}s;
+        background: ${Math.random() > 0.5 ? 'rgba(245,196,0,0.5)' : 'rgba(255,255,255,0.3)'};
+      `;
+      canvas.appendChild(p);
+    }
+  </script>
+</body>
+</html>

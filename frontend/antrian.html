@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Antrian Hari Ini — MyAstore60</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    :root { --hijau:#22C55E; --orange:#F97316; --merah:#EF4444; }
+    .antrian-hero { background:var(--biru); padding:3rem 0 2.5rem; text-align:center; }
+    .antrian-hero h1 { font-family:var(--font-display); font-size:2.8rem; color:var(--putih); margin-bottom:0.5rem; }
+    .antrian-hero p { color:rgba(255,255,255,0.7); max-width:480px; margin:0 auto 1.5rem; }
+
+    /* CEK POSISI SAYA */
+    .cek-posisi-box { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:12px; padding:1.25rem 1.5rem; max-width:500px; margin:0 auto; }
+    .cek-posisi-box h4 { color:var(--putih); font-size:0.9rem; margin-bottom:0.75rem; }
+    .cek-row { display:flex; gap:8px; }
+    .cek-row input { flex:1; padding:0.65rem 1rem; border:none; border-radius:8px; font-family:var(--font-body); font-size:0.9rem; text-transform:uppercase; outline:none; }
+    .cek-row button { padding:0.65rem 1.25rem; background:var(--kuning); color:var(--biru); border:none; border-radius:8px; font-weight:700; cursor:pointer; font-family:var(--font-body); font-size:0.9rem; white-space:nowrap; }
+    .posisi-result { margin-top:1rem; background:var(--putih); border-radius:10px; padding:1rem 1.25rem; display:none; }
+    .posisi-num { font-family:var(--font-display); font-size:2.5rem; color:var(--biru); line-height:1; }
+    .posisi-info { font-size:0.85rem; color:var(--teks-muted); margin-top:4px; }
+
+    /* MAIN CONTENT */
+    .main-section { padding:2.5rem 0 5rem; background:var(--abu-muda); }
+    .antrian-layout { display:grid; grid-template-columns:1fr 340px; gap:2rem; align-items:flex-start; }
+
+    /* STATS */
+    .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+    .stat-box { background:var(--putih); border-radius:12px; padding:1.25rem; text-align:center; box-shadow:0 2px 12px rgba(10,45,110,0.08); }
+    .stat-box-num { font-family:var(--font-display); font-size:2.2rem; line-height:1; margin-bottom:4px; }
+    .stat-box-label { font-size:0.78rem; color:var(--teks-muted); font-weight:500; }
+    .num-total { color:var(--biru); }
+    .num-proses { color:var(--orange); }
+    .num-selesai { color:var(--hijau); }
+
+    /* ANTRIAN LIST */
+    .antrian-card { background:var(--putih); border-radius:16px; box-shadow:0 2px 12px rgba(10,45,110,0.08); overflow:hidden; }
+    .ac-head { padding:1.25rem 1.5rem; border-bottom:1px solid var(--abu); display:flex; justify-content:space-between; align-items:center; }
+    .ac-head h3 { font-size:1rem; font-weight:600; color:var(--biru); }
+    .ac-head span { font-size:0.82rem; color:var(--teks-muted); }
+
+    /* ANTRIAN ITEM */
+    .antrian-item { display:flex; align-items:center; gap:1rem; padding:1rem 1.5rem; border-bottom:1px solid var(--abu); transition:background 0.15s; }
+    .antrian-item:last-child { border-bottom:none; }
+    .antrian-item.status-selesai { opacity:0.6; }
+    .antrian-item.status-proses { background:linear-gradient(135deg,#FFF8E7 0%,var(--putih) 100%); border-left:4px solid var(--kuning); }
+
+    .nomor-antrian { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:1.2rem; font-weight:700; flex-shrink:0; }
+    .nom-menunggu { background:var(--biru-muda); color:var(--biru); }
+    .nom-proses   { background:var(--kuning); color:var(--biru); }
+    .nom-selesai  { background:#DCFCE7; color:#14532D; }
+
+    .item-body { flex:1; }
+    .item-jam { font-size:1rem; font-weight:700; color:var(--teks); }
+    .item-label { font-size:0.78rem; color:var(--teks-muted); margin-top:2px; }
+
+    .item-status { text-align:right; }
+    .status-dot { display:inline-flex; align-items:center; gap:5px; font-size:0.78rem; font-weight:600; padding:4px 10px; border-radius:20px; }
+    .dot-menunggu  { background:#FEF3C7; color:#92400E; }
+    .dot-konfirmasi { background:#DBEAFE; color:#1E40AF; }
+    .dot-proses    { background:#FEF9C3; color:#713F12; }
+    .dot-selesai   { background:#DCFCE7; color:#14532D; }
+
+    .dot-indicator { width:7px; height:7px; border-radius:50%; }
+    .di-menunggu  { background:#F59E0B; }
+    .di-konfirmasi { background:#3B82F6; }
+    .di-proses    { background:#EAB308; animation:pulse 1.5s infinite; }
+    .di-selesai   { background:#22C55E; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* SEDANG DIKERJAKAN */
+    .now-card { background:linear-gradient(135deg,var(--biru) 0%,var(--biru-medium) 100%); border-radius:16px; padding:1.5rem; color:var(--putih); margin-bottom:1.25rem; box-shadow:0 4px 24px rgba(10,45,110,0.2); }
+    .now-label { font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.6); margin-bottom:0.5rem; }
+    .now-num { font-family:var(--font-display); font-size:3rem; color:var(--kuning); line-height:1; margin-bottom:0.25rem; }
+    .now-jam { font-size:0.9rem; color:rgba(255,255,255,0.8); }
+    .now-badge { display:inline-flex; align-items:center; gap:5px; background:rgba(245,196,0,0.2); color:var(--kuning); font-size:0.78rem; font-weight:600; padding:4px 10px; border-radius:20px; margin-top:0.75rem; }
+
+    /* INFO SIDEBAR */
+    .info-card { background:var(--putih); border-radius:16px; padding:1.5rem; box-shadow:0 2px 12px rgba(10,45,110,0.08); margin-bottom:1.25rem; }
+    .info-card h3 { font-size:0.9rem; font-weight:600; color:var(--biru); margin-bottom:1rem; }
+    .info-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--abu); font-size:0.85rem; }
+    .info-row:last-child { border-bottom:none; }
+    .info-row span:first-child { color:var(--teks-muted); }
+    .info-row span:last-child { font-weight:600; color:var(--teks); }
+
+    /* KOSONG */
+    .empty-antrian { text-align:center; padding:3rem 1.5rem; color:var(--teks-muted); }
+    .empty-antrian .ei { font-size:3rem; margin-bottom:1rem; }
+
+    /* REFRESH */
+    .refresh-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+    .refresh-row span { font-size:0.82rem; color:var(--teks-muted); }
+    .btn-refresh { font-size:0.82rem; padding:5px 12px; background:var(--putih); border:1.5px solid var(--abu); border-radius:8px; cursor:pointer; font-family:var(--font-body); color:var(--biru); font-weight:500; transition:all 0.15s; }
+    .btn-refresh:hover { border-color:var(--biru); background:var(--biru-muda); }
+
+    /* TANGGAL FILTER */
+    .tanggal-filter { display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .tgl-btn { font-size:0.82rem; padding:6px 14px; border-radius:20px; border:1.5px solid var(--abu); background:var(--putih); color:var(--teks-muted); cursor:pointer; font-family:var(--font-body); font-weight:500; transition:all 0.15s; }
+    .tgl-btn:hover { border-color:var(--biru); color:var(--biru); }
+    .tgl-btn.active { background:var(--biru); color:var(--putih); border-color:var(--biru); }
+    .tgl-btn input[type=date] { border:none; background:none; font-family:var(--font-body); font-size:0.82rem; color:inherit; cursor:pointer; outline:none; }
+
+    @media (max-width:900px) { .antrian-layout { grid-template-columns:1fr; } }
+    @media (max-width:600px) {
+      .stats-row { grid-template-columns:repeat(3,1fr); }
+      .cek-row { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">⚙</span>
+        <span class="logo-text">My<span class="logo-accent">Astore</span>60</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#layanan">Layanan</a></li>
+        <li><a href="harga.html">Daftar Harga</a></li>
+        <li><a href="antrian.html" class="btn-nav active">Antrian</a></li>
+        <li><a href="status.html">Cek Status</a></li>
+        <li><a href="booking.html" class="btn-nav">Booking</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="antrian-hero">
+    <div class="container">
+      <span class="section-tag">Live Update</span>
+      <h1>Antrian <span class="highlight">Hari Ini</span></h1>
+      <p>Lihat posisi antrian servis kendaraan di bengkel MyAstore60 secara real-time</p>
+
+      <!-- CEK POSISI SAYA -->
+      <div class="cek-posisi-box">
+        <h4>🔍 Cek Posisi Antrian Saya</h4>
+        <div class="cek-row">
+          <input type="text" id="inputNomorCek" placeholder="Masukkan nomor booking (MAS-2026-XXXX)" />
+          <button onclick="cekPosisi()">Cek Posisi</button>
+        </div>
+        <div class="posisi-result" id="posisiResult"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <section class="main-section">
+    <div class="container">
+
+      <!-- FILTER TANGGAL -->
+      <div class="tanggal-filter">
+        <button class="tgl-btn active" id="btnHariIni" onclick="pilihTanggal(getTodayDate(), this)">Hari Ini</button>
+        <button class="tgl-btn" id="btnBesok" onclick="pilihTanggal(getTomorrowDate(), this)">Besok</button>
+        <label class="tgl-btn" style="display:flex;align-items:center;gap:4px">
+          📅 <input type="date" id="inputTanggal" onchange="pilihTanggalCustom(this)"/>
+        </label>
+      </div>
+
+      <div class="antrian-layout">
+
+        <!-- KIRI: DAFTAR ANTRIAN -->
+        <div>
+          <div class="refresh-row">
+            <span id="lastUpdate">Memuat data...</span>
+            <button class="btn-refresh" onclick="loadAntrian()">🔄 Refresh</button>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-box">
+              <div class="stat-box-num num-total" id="statTotal">-</div>
+              <div class="stat-box-label">Total Antrian</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box-num num-proses" id="statProses">-</div>
+              <div class="stat-box-label">Sedang Dikerjakan</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box-num num-selesai" id="statSelesai">-</div>
+              <div class="stat-box-label">Sudah Selesai</div>
+            </div>
+          </div>
+
+          <div class="antrian-card" id="antrianCard">
+            <div class="ac-head">
+              <h3>📋 Daftar Antrian</h3>
+              <span id="tanggalLabel">-</span>
+            </div>
+            <div id="antrianList">
+              <div class="empty-antrian"><div class="ei">⏳</div><p>Memuat data antrian...</p></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KANAN: SIDEBAR -->
+        <div>
+          <!-- SEDANG DIKERJAKAN -->
+          <div class="now-card" id="nowCard" style="display:none">
+            <div class="now-label">🔧 Sedang Dikerjakan Sekarang</div>
+            <div class="now-num" id="nowNum">-</div>
+            <div class="now-jam" id="nowJam">-</div>
+            <div class="now-badge">
+              <div style="width:7px;height:7px;border-radius:50%;background:var(--kuning);animation:pulse 1.5s infinite"></div>
+              Live
+            </div>
+          </div>
+
+          <!-- INFO BENGKEL -->
+          <div class="info-card">
+            <h3>ℹ️ Info Bengkel</h3>
+            <div class="info-row"><span>Jam Buka</span><span>08:00 – 20:00</span></div>
+            <div class="info-row"><span>Senin – Minggu</span><span>✅ Buka</span></div>
+            <div class="info-row"><span>Estimasi/Motor</span><span>~45–90 menit</span></div>
+          </div>
+
+          <!-- BOOKING CTA -->
+          <div class="info-card" style="background:linear-gradient(135deg,var(--biru) 0%,var(--biru-medium) 100%)">
+            <h3 style="color:var(--putih)">🗓 Belum Punya Booking?</h3>
+            <p style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:1rem">Buat booking sekarang dan pilih jadwal yang masih tersedia</p>
+            <a href="booking.html" class="btn-primary" style="display:block;text-align:center">Booking Sekarang</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-bottom"><p>© 2024 MyAstore60. Semua hak dilindungi.</p></div>
+  </footer>
+
+  <script>
+    const API = 'http://localhost:3000/api';
+    let activeTanggal = getTodayDate();
+    let autoRefreshInterval;
+
+    function getTodayDate() {
+      return new Date().toISOString().split('T')[0];
+    }
+    function getTomorrowDate() {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      return d.toISOString().split('T')[0];
+    }
+    function fmtTglLabel(str) {
+      return new Date(str + 'T00:00:00').toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    }
+
+    function pilihTanggal(tgl, btn) {
+      activeTanggal = tgl;
+      document.querySelectorAll('.tgl-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadAntrian();
+    }
+
+    function pilihTanggalCustom(input) {
+      activeTanggal = input.value;
+      document.querySelectorAll('.tgl-btn').forEach(b => b.classList.remove('active'));
+      input.closest('.tgl-btn').classList.add('active');
+      loadAntrian();
+    }
+
+    function getStatusInfo(status) {
+      const map = {
+        'Menunggu Konfirmasi': { cls:'dot-menunggu', dot:'di-menunggu', label:'Menunggu', nomCls:'nom-menunggu', itemCls:'' },
+        'Dikonfirmasi':        { cls:'dot-konfirmasi',dot:'di-konfirmasi',label:'Dikonfirmasi',nomCls:'nom-menunggu',itemCls:'' },
+        'Sedang Dikerjakan':   { cls:'dot-proses',   dot:'di-proses',   label:'Dikerjakan', nomCls:'nom-proses',   itemCls:'status-proses' },
+        'Selesai':             { cls:'dot-selesai',  dot:'di-selesai',  label:'Selesai',    nomCls:'nom-selesai',  itemCls:'status-selesai' },
+      };
+      return map[status] || map['Menunggu Konfirmasi'];
+    }
+
+    async function loadAntrian() {
+      document.getElementById('antrianList').innerHTML = '<div class="empty-antrian"><div class="ei">⏳</div><p>Memuat data...</p></div>';
+
+      try {
+        const res  = await fetch(`${API}/antrian?tanggal=${activeTanggal}`);
+        const data = await res.json();
+
+        // Update stats
+        document.getElementById('statTotal').textContent   = data.total || 0;
+        document.getElementById('statProses').textContent  = data.dikerjakan || 0;
+        document.getElementById('statSelesai').textContent = data.selesai || 0;
+        document.getElementById('tanggalLabel').textContent = fmtTglLabel(activeTanggal);
+        document.getElementById('lastUpdate').textContent  = 'Update: ' + new Date().toLocaleTimeString('id-ID');
+
+        // Sedang dikerjakan
+        const proses = data.antrian?.find(a => a.status === 'Sedang Dikerjakan');
+        const nowCard = document.getElementById('nowCard');
+        if (proses) {
+          document.getElementById('nowNum').textContent = `Antrian #${proses.nomor_antrian}`;
+          document.getElementById('nowJam').textContent = `Jam ${proses.jam_servis?.slice(0,5)} WIB`;
+          nowCard.style.display = 'block';
+        } else {
+          nowCard.style.display = 'none';
+        }
+
+        // Render list
+        if (!data.antrian || data.antrian.length === 0) {
+          document.getElementById('antrianList').innerHTML = `
+            <div class="empty-antrian">
+              <div class="ei">🏍</div>
+              <p>Belum ada antrian untuk tanggal ini</p>
+              <a href="booking.html" class="btn-primary" style="display:inline-block;margin-top:1rem">Booking Sekarang</a>
+            </div>`;
+          return;
+        }
+
+        document.getElementById('antrianList').innerHTML = data.antrian.map(a => {
+          const si = getStatusInfo(a.status);
+          return `
+            <div class="antrian-item ${si.itemCls}">
+              <div class="nomor-antrian ${si.nomCls}">${a.nomor_antrian}</div>
+              <div class="item-body">
+                <div class="item-jam">Jam ${a.jam_servis?.slice(0,5)} WIB</div>
+                <div class="item-label">Antrian ke-${a.nomor_antrian}</div>
+              </div>
+              <div class="item-status">
+                <span class="status-dot ${si.cls}">
+                  <div class="dot-indicator ${si.dot}"></div>
+                  ${si.label}
+                </span>
+              </div>
+            </div>`;
+        }).join('');
+
+      } catch (err) {
+        document.getElementById('antrianList').innerHTML = `
+          <div class="empty-antrian">
+            <div class="ei">❌</div>
+            <p>Gagal memuat data. Pastikan server berjalan.</p>
+          </div>`;
+      }
+    }
+
+    async function cekPosisi() {
+      const nomor  = document.getElementById('inputNomorCek').value.trim().toUpperCase();
+      const result = document.getElementById('posisiResult');
+      if (!nomor) { document.getElementById('inputNomorCek').focus(); return; }
+
+      result.style.display = 'block';
+      result.innerHTML = '<p style="color:var(--teks-muted);font-size:0.85rem">⏳ Mencari...</p>';
+
+      try {
+        const res  = await fetch(`${API}/antrian/posisi/${nomor}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          result.innerHTML = '<p style="color:#EF4444;font-size:0.85rem">❌ Nomor booking tidak ditemukan</p>';
+          return;
+        }
+
+        // Pindah ke tanggal booking tersebut
+        activeTanggal = data.tanggal_servis;
+        document.querySelectorAll('.tgl-btn').forEach(b => b.classList.remove('active'));
+        loadAntrian();
+
+        const statusMap = {
+          'Selesai': '✅ Servis kamu sudah selesai!',
+          'Sedang Dikerjakan': '🔧 Kendaraan kamu sedang dikerjakan sekarang!',
+          'Dibatalkan': '❌ Booking ini sudah dibatalkan'
+        };
+        const pesan = statusMap[data.status] || `🚗 Masih ada <strong>${data.sisa_sebelum} antrian</strong> sebelum kamu`;
+
+        result.innerHTML = `
+          <div style="display:flex;align-items:center;gap:1rem">
+            <div style="text-align:center">
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--biru);line-height:1">#${data.posisi}</div>
+              <div style="font-size:0.7rem;color:var(--teks-muted)">dari ${data.total_antrian}</div>
+            </div>
+            <div>
+              <div style="font-size:0.85rem;font-weight:600;color:var(--teks);margin-bottom:3px">${pesan}</div>
+              <div style="font-size:0.78rem;color:var(--teks-muted)">Jam servis: ${data.jam_servis?.slice(0,5)} WIB</div>
+            </div>
+          </div>`;
+
+      } catch(err) {
+        result.innerHTML = '<p style="color:#EF4444;font-size:0.85rem">❌ Gagal terhubung ke server</p>';
+      }
+    }
+
+    // Enter key untuk cek posisi
+    document.getElementById('inputNomorCek')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') cekPosisi();
+    });
+
+    // Init
+    loadAntrian();
+
+    // Auto refresh setiap 30 detik
+    autoRefreshInterval = setInterval(loadAntrian, 30000);
+  </script>
+</body>
+</html>

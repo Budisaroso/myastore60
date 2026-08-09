@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Booking Servis — MyAstore60</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">⚙</span>
+        <span class="logo-text">My<span class="logo-accent">Astore</span>60</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#layanan">Layanan</a></li>
+        <li><a href="harga.html">Daftar Harga</a></li>
+        <li><a href="status.html">Cek Status</a></li>
+        <li><a href="booking.html" class="btn-nav active">Booking</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- BOOKING HEADER -->
+  <section class="booking-hero">
+    <div class="container">
+      <div class="booking-hero-text">
+        <span class="section-tag">Reservasi Online</span>
+        <h1>Booking Servis<br><span class="highlight">MyAstore60</span></h1>
+        <p>Isi form di bawah ini untuk memesan jadwal servis. Tim kami akan menghubungi kamu dalam 30 menit.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORM BOOKING -->
+  <section class="booking-section">
+    <div class="container booking-layout">
+
+      <!-- FORM -->
+      <div class="booking-form-wrap">
+        <div class="form-card" id="formCard">
+          <h2 class="form-title">Form Booking</h2>
+
+          <!-- STEP INDICATOR -->
+          <div class="steps">
+            <div class="step active" id="step1dot">
+              <div class="step-circle">1</div>
+              <span>Data Diri</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step2dot">
+              <div class="step-circle">2</div>
+              <span>Kendaraan</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step3dot">
+              <div class="step-circle">3</div>
+              <span>Jadwal</span>
+            </div>
+          </div>
+
+          <!-- STEP 1: DATA DIRI -->
+          <div class="form-step" id="formStep1">
+            <div class="form-group">
+              <label>Nama Lengkap <span class="required">*</span></label>
+              <input type="text" id="nama" placeholder="Contoh: Budi Santoso" />
+              <span class="error-msg" id="err-nama"></span>
+            </div>
+            <div class="form-group">
+              <label>Nomor HP / WhatsApp <span class="required">*</span></label>
+              <input type="tel" id="hp" placeholder="Contoh: 08123456789" />
+              <span class="error-msg" id="err-hp"></span>
+            </div>
+            <div class="form-group">
+              <label>Email <span class="optional">(opsional)</span></label>
+              <input type="email" id="email" placeholder="contoh@email.com" />
+            </div>
+            <button class="btn-primary btn-full" onclick="nextStep(2)">Lanjut →</button>
+          </div>
+
+          <!-- STEP 2: KENDARAAN & LAYANAN -->
+          <div class="form-step hidden" id="formStep2">
+
+            <div class="form-group">
+              <label>Merek & Tipe <span class="required">*</span></label>
+              <input type="text" id="merek" placeholder="Contoh: Honda Vario 150" />
+              <span class="error-msg" id="err-merek"></span>
+            </div>
+            <div class="form-group">
+              <label>Nomor Polisi <span class="required">*</span></label>
+              <input type="text" id="nopol" placeholder="Contoh: B 1234 XYZ" style="text-transform:uppercase"/>
+              <span class="error-msg" id="err-nopol"></span>
+            </div>
+
+            <!-- FILTER JENIS MOTOR & CC -->
+            <div class="form-group">
+              <label>Jenis Motor <span class="required">*</span></label>
+              <div class="motor-filter-row">
+                <button type="button" class="mf-btn active" data-motor="semua" onclick="filterMotor('semua',this)">Semua</button>
+                <button type="button" class="mf-btn" data-motor="bebek" onclick="filterMotor('bebek',this)">Bebek</button>
+                <button type="button" class="mf-btn" data-motor="matic" onclick="filterMotor('matic',this)">Matic</button>
+                <button type="button" class="mf-btn" data-motor="kopling" onclick="filterMotor('kopling',this)">Kopling</button>
+              </div>
+              <div class="motor-filter-row" style="margin-top:6px">
+                <button type="button" class="mf-btn cc active" data-cc="semua" onclick="filterCC('semua',this)">Semua CC</button>
+                <button type="button" class="mf-btn cc" data-cc="kecil" onclick="filterCC('kecil',this)">≤135/125cc</button>
+                <button type="button" class="mf-btn cc" data-cc="besar" onclick="filterCC('besar',this)">≤250cc</button>
+              </div>
+              <span class="error-msg" id="err-kendaraan"></span>
+            </div>
+
+            <!-- DAFTAR PAKET LAYANAN -->
+            <div class="form-group">
+              <label>Pilih Paket Layanan <span class="required">*</span> <span class="optional">(bisa pilih lebih dari 1)</span></label>
+              <div id="paketList" class="paket-list"></div>
+              <span class="error-msg" id="err-layanan"></span>
+            </div>
+
+            <!-- ESTIMASI HARGA -->
+            <div class="estimasi-wrap" id="estimasiWrap" style="display:none">
+              <div class="estimasi-label">💰 Estimasi Total Harga</div>
+              <div class="estimasi-row">
+                <span class="estimasi-normal" id="estimasiNormal"></span>
+                <span class="estimasi-promo" id="estimasiPromo"></span>
+              </div>
+              <div class="estimasi-note">*Harga estimasi, dapat berubah sesuai kondisi kendaraan</div>
+            </div>
+
+            <div class="form-group">
+              <label>Keluhan / Keterangan Tambahan</label>
+              <textarea id="keluhan" placeholder="Ceritakan keluhan kendaraan kamu..." rows="3"></textarea>
+            </div>
+            <div class="btn-row">
+              <button class="btn-secondary" onclick="prevStep(1)">← Kembali</button>
+              <button class="btn-primary" onclick="nextStep(3)">Lanjut →</button>
+            </div>
+          </div>
+
+          <!-- STEP 3: JADWAL -->
+          <div class="form-step hidden" id="formStep3">
+            <div class="form-group">
+              <label>Tanggal Servis <span class="required">*</span></label>
+              <input type="date" id="tanggal" />
+              <span class="error-msg" id="err-tanggal"></span>
+            </div>
+            <div class="form-group">
+              <label>Jam Servis <span class="required">*</span></label>
+              <div class="jam-options" id="jamOptions">
+                <button class="jam-btn" onclick="pilihJam(this, '08:00')">08:00</button>
+                <button class="jam-btn" onclick="pilihJam(this, '09:00')">09:00</button>
+                <button class="jam-btn" onclick="pilihJam(this, '10:00')">10:00</button>
+                <button class="jam-btn" onclick="pilihJam(this, '11:00')">11:00</button>
+                <button class="jam-btn" onclick="pilihJam(this, '13:00')">13:00</button>
+                <button class="jam-btn" onclick="pilihJam(this, '14:00')">14:00</button>
+                <button class="jam-btn" onclick="pilihJam(this, '15:00')">15:00</button>
+                <button class="jam-btn" onclick="pilihJam(this, '16:00')">16:00</button>
+              </div>
+              <span class="error-msg" id="err-jam"></span>
+            </div>
+            <div class="form-group">
+              <label>Catatan Tambahan</label>
+              <textarea id="catatan" placeholder="Contoh: tolong siapkan ban cadangan..." rows="2"></textarea>
+            </div>
+            <div class="btn-row">
+              <button class="btn-secondary" onclick="prevStep(2)">← Kembali</button>
+              <button class="btn-primary" onclick="submitBooking()">✔ Konfirmasi Booking</button>
+            </div>
+          </div>
+
+          <!-- SUCCESS -->
+          <div class="form-step hidden" id="formSuccess">
+            <div class="success-wrap">
+              <div class="success-icon">✅</div>
+              <h3>Booking Berhasil!</h3>
+              <p>Nomor booking kamu:</p>
+              <div class="booking-number" id="bookingNumber">MAS-2024-0001</div>
+              <p class="success-note">Simpan nomor ini untuk cek status servis. Tim kami akan menghubungi kamu via WhatsApp dalam 30 menit.</p>
+              <div class="success-actions">
+                <a href="status.html" class="btn-primary">Cek Status Booking</a>
+                <a href="index.html" class="btn-secondary">Kembali ke Beranda</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SIDEBAR INFO -->
+      <div class="booking-sidebar">
+        <div class="sidebar-card">
+          <h3>📋 Ringkasan Booking</h3>
+          <div class="summary-list" id="summaryList">
+            <div class="summary-item empty">Isi form untuk melihat ringkasan</div>
+          </div>
+        </div>
+        <div class="sidebar-card">
+          <h3>ℹ️ Informasi Penting</h3>
+          <ul class="info-list">
+            <li>Booking minimal H-1 sebelum tanggal servis</li>
+            <li>Konfirmasi via WhatsApp dalam 30 menit</li>
+            <li>Bawa STNK saat datang ke bengkel</li>
+            <li>Pembatalan paling lambat 2 jam sebelum jadwal</li>
+          </ul>
+        </div>
+        <div class="sidebar-card">
+          <h3>💰 Lihat Semua Harga</h3>
+          <p style="font-size:0.88rem;color:var(--teks-muted);margin-bottom:0.75rem">Cek daftar lengkap paket & harga servis motor kami</p>
+          <a href="harga.html" class="btn-secondary" style="display:block;text-align:center;font-size:0.88rem;padding:0.6rem">📋 Daftar Harga Lengkap</a>
+        </div>
+        <div class="sidebar-card sidebar-contact">
+          <h3>📞 Butuh Bantuan?</h3>
+          <p>Hubungi kami langsung:</p>
+          <a href="https://wa.me/6281234567890" class="btn-wa">💬 WhatsApp Kami</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-bottom">
+      <p>© 2024 MyAstore60. Semua hak dilindungi.</p>
+    </div>
+  </footer>
+
+  <script src="js/paket-data.js"></script>
+  <script src="js/booking.js"></script>
+</body>
+</html>

@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Admin — MyAstore60</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --kuning: #F5C400; --kuning-muda: #FFF8D6;
+      --biru: #0A2D6E; --biru-medium: #1A4BA8; --biru-muda: #E8F0FF;
+      --putih: #FFFFFF; --abu: #E5E7EB; --abu-muda: #F7F8FA;
+      --teks: #1A1A2E; --teks-muted: #6B7280;
+      --hijau: #22C55E; --merah: #EF4444; --orange: #F97316;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--abu-muda); color: var(--teks); }
+
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed; top: 0; left: 0;
+      width: 240px; height: 100vh;
+      background: var(--biru);
+      display: flex; flex-direction: column;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar-logo h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem; color: var(--putih); letter-spacing: 1px;
+    }
+    .sidebar-logo h1 span { color: var(--kuning); }
+    .sidebar-logo p { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 2px; }
+    .sidebar-menu { flex: 1; padding: 1rem 0; }
+    .menu-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0.75rem 1.5rem;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.9rem; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .menu-item:hover { background: rgba(255,255,255,0.08); color: var(--putih); }
+    .menu-item.active { background: rgba(245,196,0,0.15); color: var(--kuning); border-left-color: var(--kuning); }
+    .menu-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+    .sidebar-bottom {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .admin-info { display: flex; align-items: center; gap: 10px; margin-bottom: 0.75rem; }
+    .admin-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--kuning); color: var(--biru);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
+    }
+    .admin-name { font-size: 0.85rem; color: var(--putih); font-weight: 500; }
+    .admin-role { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+    .btn-logout {
+      width: 100%; padding: 0.6rem;
+      background: rgba(239,68,68,0.15);
+      color: #FCA5A5; border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .btn-logout:hover { background: rgba(239,68,68,0.3); }
+
+    /* MAIN */
+    .main { margin-left: 240px; min-height: 100vh; }
+    .topbar {
+      background: var(--putih);
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--abu);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar h2 { font-size: 1.1rem; font-weight: 600; color: var(--biru); }
+    .topbar-date { font-size: 0.85rem; color: var(--teks-muted); }
+    .content { padding: 2rem; }
+
+    /* STATS */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem; margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--putih); border-radius: 12px;
+      padding: 1.25rem; box-shadow: 0 2px 12px rgba(10,45,110,0.08);
+    }
+    .stat-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+    .stat-label { font-size: 0.82rem; color: var(--teks-muted); font-weight: 500; }
+    .stat-icon { font-size: 1.4rem; }
+    .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--biru); letter-spacing: 0.5px; }
+    .stat-sub { font-size: 0.78rem; color: var(--teks-muted); margin-top: 2px; }
+
+    /* FILTER & TABLE */
+    .section-card {
+      background: var(--putih); border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(10,45,110,0.08);
+      overflow: hidden;
+    }
+    .section-head {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--abu);
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .section-head h3 { font-size: 1rem; font-weight: 600; color: var(--biru); }
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-btn {
+      font-size: 0.8rem; padding: 5px 14px;
+      border-radius: 20px; border: 1.5px solid var(--abu);
+      background: var(--putih); color: var(--teks-muted);
+      cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover { border-color: var(--biru); color: var(--biru); }
+    .filter-btn.active { background: var(--biru); color: var(--putih); border-color: var(--biru); }
+
+    /* TABLE */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; padding: 0.75rem 1rem;
+      font-size: 0.78rem; font-weight: 600;
+      color: var(--teks-muted); text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background: var(--abu-muda);
+      border-bottom: 1px solid var(--abu);
+    }
+    td {
+      padding: 0.85rem 1rem;
+      font-size: 0.88rem; color: var(--teks);
+      border-bottom: 1px solid var(--abu);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--abu-muda); }
+
+    /* STATUS BADGE */
+    .badge {
+      display: inline-block; font-size: 0.75rem; font-weight: 600;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .badge-menunggu  { background: #FEF3C7; color: #92400E; }
+    .badge-konfirmasi { background: #DBEAFE; color: #1E40AF; }
+    .badge-dikerjakan { background: #E0E7FF; color: #3730A3; }
+    .badge-selesai   { background: #DCFCE7; color: #14532D; }
+    .badge-batal     { background: #FEE2E2; color: #991B1B; }
+
+    /* ACTION BUTTONS */
+    .btn-detail {
+      font-size: 0.8rem; padding: 4px 12px;
+      background: var(--biru-muda); color: var(--biru);
+      border: none; border-radius: 6px; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500;
+      transition: background 0.15s;
+    }
+    .btn-detail:hover { background: var(--biru); color: var(--putih); }
+
+    /* LOADING & EMPTY */
+    .loading { text-align: center; padding: 3rem; color: var(--teks-muted); }
+    .empty { text-align: center; padding: 3rem; color: var(--teks-muted); }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200; display: none;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--putih); border-radius: 16px;
+      padding: 2rem; width: 100%; max-width: 520px;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .modal-head h3 { font-size: 1.1rem; font-weight: 600; color: var(--biru); }
+    .modal-close {
+      background: none; border: none; font-size: 1.3rem;
+      cursor: pointer; color: var(--teks-muted);
+    }
+    .detail-row {
+      display: flex; justify-content: space-between;
+      padding: 8px 0; border-bottom: 1px solid var(--abu);
+      font-size: 0.88rem;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: var(--teks-muted); font-weight: 500; }
+    .detail-val { color: var(--teks); font-weight: 500; text-align: right; max-width: 60%; }
+    .status-select {
+      width: 100%; padding: 0.65rem 1rem;
+      border: 1.5px solid var(--abu); border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem;
+      margin-top: 1rem; outline: none; color: var(--teks);
+    }
+    .status-select:focus { border-color: var(--biru); }
+    .btn-update {
+      width: 100%; padding: 0.75rem;
+      background: var(--kuning); color: var(--biru);
+      font-weight: 700; border: none; border-radius: 8px;
+      cursor: pointer; font-size: 0.95rem; margin-top: 0.75rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: background 0.15s;
+    }
+    .btn-update:hover { background: #D4A800; }
+
+    @media (max-width: 900px) {
+      .sidebar { width: 200px; }
+      .main { margin-left: 200px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+
+    /* ===== EXIT OVERLAY ===== */
+    #exitOverlay {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #0A2D6E 0%, #1A4BA8 100%);
+      z-index: 9999; display: none;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1rem; opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    #exitOverlay.show { display: flex; }
+    #exitOverlay.visible { opacity: 1; }
+    .eo-gear { font-size: 3rem; animation: eoSpin 1.5s linear infinite; }
+    @keyframes eoSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    .eo-logo { font-family:'Bebas Neue',sans-serif; font-size: 2rem; color: #fff; letter-spacing: 1px; }
+    .eo-logo span { color: #F5C400; }
+    .eo-sub { font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+    .eo-bar-wrap { width: 180px; height: 3px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; }
+    .eo-bar { height: 100%; width: 0%; background: #F5C400; border-radius: 3px; animation: eoLoad 1.2s ease forwards; }
+    @keyframes eoLoad { from{width:0%} to{width:100%} }
+
+    /* ===== SPLASH SCREEN ===== */
+    #splashScreen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, var(--biru) 0%, var(--biru-medium) 100%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    #splashScreen.fade-out {
+      opacity: 0;
+      transform: scale(1.05);
+      pointer-events: none;
+    }
+    .splash-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem;
+      color: var(--putih);
+      letter-spacing: 2px;
+      margin-bottom: 0.5rem;
+      animation: splashLogo 0.8s ease forwards;
+    }
+    .splash-logo span { color: var(--kuning); }
+    .splash-sub {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 3rem;
+      animation: splashLogo 0.8s ease 0.1s both;
+    }
+    .splash-welcome {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.9);
+      font-weight: 500;
+      margin-bottom: 2.5rem;
+      animation: splashLogo 0.8s ease 0.2s both;
+    }
+    .splash-welcome strong { color: var(--kuning); }
+    .splash-progress-wrap {
+      width: 220px;
+      animation: splashLogo 0.8s ease 0.3s both;
+    }
+    .splash-progress-label {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .splash-progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .splash-progress-fill {
+      height: 100%;
+      background: var(--kuning);
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+    .splash-gear {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      animation: spin 2s linear infinite;
+    }
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    @keyframes splashLogo {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .splash-dots {
+      display: flex; gap: 6px; margin-top: 1.5rem;
+      animation: splashLogo 0.8s ease 0.4s both;
+    }
+    .splash-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      animation: dotPulse 1.2s ease infinite;
+    }
+    .splash-dot:nth-child(2) { animation-delay: 0.2s; }
+    .splash-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotPulse {
+      0%,100% { background: rgba(255,255,255,0.3); transform: scale(1); }
+      50%      { background: var(--kuning); transform: scale(1.3); }
+    }
+
+    /* ===== MANAJEMEN HARGA ===== */
+    .harga-filter-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .htab { font-family:var(--font-body,sans-serif); font-size:0.82rem; font-weight:500; padding:6px 16px; border-radius:20px; border:1.5px solid var(--abu,#E5E7EB); background:var(--putih,#fff); color:var(--teks-muted,#6B7280); cursor:pointer; transition:all 0.15s; }
+    .htab:hover { border-color:var(--biru,#0A2D6E); color:var(--biru,#0A2D6E); }
+    .htab.active { background:var(--biru,#0A2D6E); color:#fff; border-color:var(--biru,#0A2D6E); }
+
+    .harga-grid-admin { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; }
+    .harga-item-card { background:var(--putih,#fff); border:0.5px solid var(--abu,#E5E7EB); border-radius:12px; padding:1.25rem; position:relative; transition:box-shadow 0.15s; }
+    .harga-item-card:hover { box-shadow:0 4px 16px rgba(10,45,110,0.1); }
+    .harga-item-card.nonaktif { opacity:0.5; }
+    .hic-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem; }
+    .hic-name { font-size:0.9rem; font-weight:600; color:var(--biru,#0A2D6E); flex:1; margin-right:8px; }
+    .hic-actions { display:flex; gap:6px; flex-shrink:0; }
+    .btn-edit-harga { font-size:0.75rem; padding:3px 10px; background:#DBEAFE; color:#1E40AF; border:none; border-radius:6px; cursor:pointer; font-weight:500; }
+    .btn-edit-harga:hover { background:#1E40AF; color:#fff; }
+    .btn-del-harga { font-size:0.75rem; padding:3px 10px; background:#FEE2E2; color:#991B1B; border:none; border-radius:6px; cursor:pointer; font-weight:500; }
+    .btn-del-harga:hover { background:#991B1B; color:#fff; }
+    .btn-toggle-harga { font-size:0.75rem; padding:3px 10px; background:#F3F4F6; color:#6B7280; border:none; border-radius:6px; cursor:pointer; font-weight:500; }
+
+    .hic-badges { display:flex; gap:5px; margin-bottom:0.75rem; flex-wrap:wrap; }
+    .hic-badge { font-size:10px; padding:2px 8px; border-radius:4px; font-weight:500; }
+    .hib-bebek   { background:#EEEDFE; color:#3C3489; }
+    .hib-matic   { background:#E1F5EE; color:#085041; }
+    .hib-kopling { background:#FAECE7; color:#712B13; }
+    .hib-semua   { background:#E0E7FF; color:#3730A3; }
+    .hib-lengkap { background:#FEF3C7; color:#92400E; }
+    .hib-satuan  { background:#F3F4F6; color:#6B7280; }
+    .hib-kecil   { background:#F0FDF4; color:#166534; }
+    .hib-besar   { background:#FFF7ED; color:#9A3412; }
+
+    .hic-prices { display:flex; align-items:center; gap:10px; }
+    .hic-normal { font-size:11px; color:#9CA3AF; text-decoration:line-through; }
+    .hic-promo  { font-size:1rem; font-weight:700; color:#0a6644; }
+    .hic-diskon { font-size:11px; background:#DCFCE7; color:#14532D; padding:2px 7px; border-radius:8px; font-weight:600; }
+
+    .btn-tambah-paket { display:flex; align-items:center; gap:8px; background:var(--kuning,#F5C400); color:var(--biru,#0A2D6E); font-weight:700; font-size:0.88rem; padding:0.65rem 1.25rem; border:none; border-radius:8px; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+    .btn-tambah-paket:hover { background:#D4A800; }
+
+    /* MODAL FORM HARGA */
+    .modal-form-group { margin-bottom:1rem; }
+    .modal-form-group label { display:block; font-size:0.82rem; font-weight:600; color:var(--biru,#0A2D6E); margin-bottom:4px; }
+    .modal-form-group input, .modal-form-group select { width:100%; padding:0.65rem 0.9rem; border:1.5px solid #E5E7EB; border-radius:8px; font-size:0.9rem; font-family:inherit; outline:none; transition:border-color 0.2s; }
+    .modal-form-group input:focus, .modal-form-group select:focus { border-color:var(--biru,#0A2D6E); }
+    .form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .modal-form-actions { display:flex; gap:10px; margin-top:1.25rem; }
+    .btn-save-paket { flex:1; padding:0.75rem; background:var(--kuning,#F5C400); color:var(--biru,#0A2D6E); font-weight:700; border:none; border-radius:8px; cursor:pointer; font-size:0.95rem; font-family:inherit; }
+    .btn-save-paket:hover { background:#D4A800; }
+    .btn-cancel-paket { padding:0.75rem 1.25rem; background:#F3F4F6; color:#6B7280; font-weight:600; border:none; border-radius:8px; cursor:pointer; font-family:inherit; }
+    .btn-cancel-paket:hover { background:#E5E7EB; }
+    .harga-empty { text-align:center; padding:3rem; color:#9CA3AF; grid-column:1/-1; }
+  </style>
+</head>
+<body>
+
+
+
+  <!-- EXIT OVERLAY -->
+  <div id="exitOverlay">
+    <div class="eo-gear">⚙</div>
+    <div class="eo-logo">My<span>Astore</span>60</div>
+    <div class="eo-sub" id="exitLabel">Membuka halaman...</div>
+    <div class="eo-bar-wrap"><div class="eo-bar" id="eoBar"></div></div>
+  </div>
+
+  <!-- SPLASH SCREEN -->
+  <div id="splashScreen">
+    <div class="splash-gear">⚙</div>
+    <div class="splash-logo">My<span>Astore</span>60</div>
+    <div class="splash-sub">Panel Admin Bengkel</div>
+    <div class="splash-welcome">Selamat datang, <strong id="splashName">Admin</strong>!</div>
+    <div class="splash-progress-wrap">
+      <div class="splash-progress-label" id="splashLabel">Memuat dashboard...</div>
+      <div class="splash-progress-bar">
+        <div class="splash-progress-fill" id="splashFill"></div>
+      </div>
+    </div>
+    <div class="splash-dots">
+      <div class="splash-dot"></div>
+      <div class="splash-dot"></div>
+      <div class="splash-dot"></div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>⚙ My<span>Astore</span>60</h1>
+      <p>Panel Admin</p>
+    </div>
+    <nav class="sidebar-menu">
+      <div class="menu-item active" onclick="showPage('dashboard')">
+        <span class="menu-icon">📊</span> Dashboard
+      </div>
+      <div class="menu-item" onclick="showPage('bookings')">
+        <span class="menu-icon">📋</span> Semua Booking
+      </div>
+      <div class="menu-item" onclick="window.location.href='manajemen-harga.html'">
+        <span class="menu-icon">💰</span> Manajemen Harga
+      </div>
+      <div class="menu-item" onclick="bukaWebsite('../index.html', 'Membuka website MyAstore60...')">
+        <span class="menu-icon">🌐</span> Lihat Website
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="admin-info">
+        <div class="admin-avatar" id="adminAvatar">A</div>
+        <div>
+          <div class="admin-name" id="adminName">Admin</div>
+          <div class="admin-role">Administrator</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">🚪 Keluar</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <h2 id="pageTitle">Dashboard</h2>
+      <div class="topbar-date" id="topbarDate"></div>
+    </div>
+
+    <div class="content">
+
+      <!-- HALAMAN DASHBOARD -->
+      <div id="pageDashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-top">
+              <div class="stat-label">Total Booking</div>
+              <div class="stat-icon">📋</div>
+            </div>
+            <div class="stat-value" id="statTotal">-</div>
+            <div class="stat-sub">Semua waktu</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-top">
+              <div class="stat-label">Menunggu</div>
+              <div class="stat-icon">⏳</div>
+            </div>
+            <div class="stat-value" id="statMenunggu">-</div>
+            <div class="stat-sub">Perlu konfirmasi</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-top">
+              <div class="stat-label">Dikerjakan</div>
+              <div class="stat-icon">🔧</div>
+            </div>
+            <div class="stat-value" id="statDikerjakan">-</div>
+            <div class="stat-sub">Sedang proses</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-top">
+              <div class="stat-label">Selesai</div>
+              <div class="stat-icon">✅</div>
+            </div>
+            <div class="stat-value" id="statSelesai">-</div>
+            <div class="stat-sub">Berhasil servis</div>
+          </div>
+        </div>
+
+        <!-- Booking terbaru -->
+        <div class="section-card">
+          <div class="section-head">
+            <h3>📅 Booking Terbaru</h3>
+            <button class="filter-btn active" onclick="showPage('bookings')">Lihat Semua →</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nomor</th>
+                  <th>Pelanggan</th>
+                  <th>Kendaraan</th>
+                  <th>Layanan</th>
+                  <th>Tanggal</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tabelDashboard">
+                <tr><td colspan="7" class="loading">⏳ Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- HALAMAN SEMUA BOOKING -->
+      <div id="pageBookings" style="display:none">
+        <div class="section-card">
+          <div class="section-head">
+            <h3>📋 Semua Booking</h3>
+            <div class="filter-row">
+              <button class="filter-btn active" onclick="filterStatus('', this)">Semua</button>
+              <button class="filter-btn" onclick="filterStatus('Menunggu Konfirmasi', this)">Menunggu</button>
+              <button class="filter-btn" onclick="filterStatus('Dikonfirmasi', this)">Dikonfirmasi</button>
+              <button class="filter-btn" onclick="filterStatus('Sedang Dikerjakan', this)">Dikerjakan</button>
+              <button class="filter-btn" onclick="filterStatus('Selesai', this)">Selesai</button>
+              <button class="filter-btn" onclick="filterStatus('Dibatalkan', this)">Dibatalkan</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nomor</th>
+                  <th>Pelanggan</th>
+                  <th>HP</th>
+                  <th>Kendaraan</th>
+                  <th>Layanan</th>
+                  <th>Tanggal</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tabelBookings">
+                <tr><td colspan="9" class="loading">⏳ Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+  
+      <!-- HALAMAN MANAJEMEN HARGA -->
+      <div id="pageHarga" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px">
+          <div>
+            <h3 style="font-size:1rem;font-weight:600;color:var(--biru)">💰 Manajemen Paket Harga</h3>
+            <p style="font-size:0.82rem;color:var(--teks-muted);margin-top:2px">Kelola paket layanan dan harga bengkel</p>
+          </div>
+          <button class="btn-tambah-paket" onclick="bukaModalTambah()">＋ Tambah Paket Baru</button>
+        </div>
+
+        <!-- FILTER -->
+        <div class="harga-filter-tabs">
+          <button class="htab active" onclick="filterHarga('semua',this)">Semua</button>
+          <button class="htab" onclick="filterHarga('lengkap',this)">Paket Lengkap</button>
+          <button class="htab" onclick="filterHarga('satuan',this)">Paket Satuan</button>
+          <button class="htab" onclick="filterHarga('bebek',this)">Bebek</button>
+          <button class="htab" onclick="filterHarga('matic',this)">Matic</button>
+          <button class="htab" onclick="filterHarga('kopling',this)">Kopling</button>
+        </div>
+
+        <!-- STATS -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+          <div class="stat-card">
+            <div class="stat-card-top"><div class="stat-label">Total Paket</div><div class="stat-icon">📦</div></div>
+            <div class="stat-value" id="hargaStatTotal">-</div>
+            <div class="stat-sub">Semua paket aktif</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-top"><div class="stat-label">Paket Lengkap</div><div class="stat-icon">⭐</div></div>
+            <div class="stat-value" id="hargaStatLengkap">-</div>
+            <div class="stat-sub">Paket lengkap aktif</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-top"><div class="stat-label">Paket Satuan</div><div class="stat-icon">🔧</div></div>
+            <div class="stat-value" id="hargaStatSatuan">-</div>
+            <div class="stat-sub">Paket satuan aktif</div>
+          </div>
+        </div>
+
+        <!-- GRID PAKET -->
+        <div class="harga-grid-admin" id="hargaGrid">
+          <div class="harga-empty">⏳ Memuat data paket...</div>
+        </div>
+      </div>
+
+      <!-- MODAL FORM PAKET -->
+      <div class="modal-overlay" id="modalHarga" onclick="closeModalHarga(event)">
+        <div class="modal" style="max-width:560px">
+          <div class="modal-head">
+            <h3 id="modalHargaTitle">Tambah Paket Baru</h3>
+            <button class="modal-close" onclick="tutupModalHarga()">✕</button>
+          </div>
+          <div>
+            <div class="modal-form-group">
+              <label>Nama Paket <span style="color:#EF4444">*</span></label>
+              <input type="text" id="fNama" placeholder="Contoh: Paket Service Lengkap Pro" />
+            </div>
+            <div class="form-row-2">
+              <div class="modal-form-group">
+                <label>Tipe <span style="color:#EF4444">*</span></label>
+                <select id="fTipe">
+                  <option value="lengkap">Paket Lengkap</option>
+                  <option value="satuan">Paket Satuan</option>
+                </select>
+              </div>
+              <div class="modal-form-group">
+                <label>Jenis Motor <span style="color:#EF4444">*</span></label>
+                <select id="fJenis">
+                  <option value="bebek">Bebek</option>
+                  <option value="matic">Matic</option>
+                  <option value="kopling">Kopling</option>
+                  <option value="semua">Semua</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-form-group">
+              <label>Kapasitas CC <span style="color:#EF4444">*</span></label>
+              <select id="fCC">
+                <option value="kecil">Kecil (≤125/135cc)</option>
+                <option value="besar">Besar (≤250cc)</option>
+                <option value="semua">Semua CC</option>
+              </select>
+            </div>
+            <div class="form-row-2">
+              <div class="modal-form-group">
+                <label>Harga Normal (Rp) <span style="color:#EF4444">*</span></label>
+                <input type="number" id="fNormal" placeholder="Contoh: 250000" min="0" />
+              </div>
+              <div class="modal-form-group">
+                <label>Harga Promo (Rp) <span style="color:#EF4444">*</span></label>
+                <input type="number" id="fPromo" placeholder="Contoh: 165000" min="0" />
+              </div>
+            </div>
+            <div class="modal-form-group">
+              <label>Deskripsi / Isi Paket <span style="color:#9CA3AF;font-weight:400">(opsional)</span></label>
+              <input type="text" id="fDeskripsi" placeholder="Contoh: Tune up, ganti oli, cek rem..." />
+            </div>
+            <!-- Preview diskon -->
+            <div id="previewDiskon" style="display:none;background:#DCFCE7;border-radius:8px;padding:10px 14px;font-size:0.85rem;color:#14532D;margin-bottom:0.5rem">
+              💰 Diskon: <strong id="nilaiDiskon">0%</strong> — Hemat <strong id="nilaiHemat">Rp 0</strong>
+            </div>
+            <div class="modal-form-actions">
+              <button class="btn-cancel-paket" onclick="tutupModalHarga()">Batal</button>
+              <button class="btn-save-paket" onclick="simpanPaket()">💾 Simpan Paket</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL DETAIL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Detail Booking</h3>
+        <button class="modal-close" onclick="tutupModal()">✕</button>
+      </div>
+      <div id="modalContent"></div>
+      <div id="modalAction"></div>
+    </div>
+  </div>
+
+  <script>
+    const API   = 'http://localhost:3000/api';
+    const token = localStorage.getItem('admin_token');
+    let allBookings    = [];
+    let currentFilter  = '';
+    let selectedBookingId = null;
+
+    // Cek login
+    if (!token) window.location.href = 'login.html';
+
+    // Set nama admin
+    const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+    if (adminUser.nama) {
+      document.getElementById('adminName').textContent = adminUser.nama;
+      document.getElementById('adminAvatar').textContent = adminUser.nama.charAt(0).toUpperCase();
+    }
+
+    // Set tanggal
+    document.getElementById('topbarDate').textContent =
+      new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+    // ===== NAVIGASI =====
+    function showPage(page) {
+      document.getElementById('pageDashboard').style.display = page === 'dashboard' ? 'block' : 'none';
+      document.getElementById('pageBookings').style.display  = page === 'bookings'  ? 'block' : 'none';
+      document.getElementById('pageHarga').style.display     = page === 'harga'     ? 'block' : 'none';
+      const titles = { dashboard:'Dashboard', bookings:'Semua Booking', harga:'Manajemen Harga' };
+      document.getElementById('pageTitle').textContent = titles[page] || 'Dashboard';
+      document.querySelectorAll('.menu-item').forEach((el, i) => {
+        el.classList.toggle('active',
+          (page==='dashboard' && i===0) ||
+          (page==='bookings'  && i===1) ||
+          (page==='harga'     && i===2)
+        );
+      });
+      if (page === 'bookings') renderTabelBookings();
+      if (page === 'harga')    loadHarga();
+    }
+
+    // ===== LOAD DATA =====
+    async function loadData() {
+      try {
+        const res  = await fetch(`${API}/booking?limit=100`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        allBookings = data.bookings || [];
+        renderStats();
+        renderTabelDashboard();
+      } catch (err) {
+        console.error('Load data error:', err);
+      }
+    }
+
+    function renderStats() {
+      document.getElementById('statTotal').textContent     = allBookings.length;
+      document.getElementById('statMenunggu').textContent  = allBookings.filter(b => b.status === 'Menunggu Konfirmasi').length;
+      document.getElementById('statDikerjakan').textContent = allBookings.filter(b => b.status === 'Sedang Dikerjakan').length;
+      document.getElementById('statSelesai').textContent   = allBookings.filter(b => b.status === 'Selesai').length;
+    }
+
+    function badgeHTML(status) {
+      const map = {
+        'Menunggu Konfirmasi': 'badge-menunggu',
+        'Dikonfirmasi':        'badge-konfirmasi',
+        'Sedang Dikerjakan':   'badge-dikerjakan',
+        'Selesai':             'badge-selesai',
+        'Dibatalkan':          'badge-batal'
+      };
+      return `<span class="badge ${map[status] || ''}">${status}</span>`;
+    }
+
+    function fmtTgl(str) {
+      return new Date(str).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+    }
+
+    function fmtRp(n) {
+      return 'Rp ' + (n || 0).toLocaleString('id-ID');
+    }
+
+    function renderTabelDashboard() {
+      const tbody = document.getElementById('tabelDashboard');
+      const data  = allBookings.slice(0, 10);
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">Belum ada booking</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(b => `
+        <tr>
+          <td><strong>${b.nomor_booking}</strong></td>
+          <td>${b.nama_pelanggan}</td>
+          <td>${b.merek_kendaraan}<br><small style="color:#6B7280">${b.nopol}</small></td>
+          <td style="max-width:150px;font-size:0.82rem">${b.layanan}</td>
+          <td>${fmtTgl(b.tanggal_servis)}<br><small style="color:#6B7280">${b.jam_servis?.slice(0,5)} WIB</small></td>
+          <td>${badgeHTML(b.status)}</td>
+          <td><button class="btn-detail" onclick="bukaDetail(${b.id})">Detail</button></td>
+        </tr>`).join('');
+    }
+
+    // ===== FILTER =====
+    function filterStatus(status, btn) {
+      currentFilter = status;
+      document.querySelectorAll('#pageBookings .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTabelBookings();
+    }
+
+    function renderTabelBookings() {
+      const tbody = document.getElementById('tabelBookings');
+      const data  = currentFilter ? allBookings.filter(b => b.status === currentFilter) : allBookings;
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty">Tidak ada data</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(b => `
+        <tr>
+          <td><strong>${b.nomor_booking}</strong></td>
+          <td>${b.nama_pelanggan}</td>
+          <td>${b.no_hp}</td>
+          <td>${b.merek_kendaraan} ${b.nopol}</td>
+          <td style="max-width:150px;font-size:0.82rem">${b.layanan}</td>
+          <td>${fmtTgl(b.tanggal_servis)} ${b.jam_servis?.slice(0,5)}</td>
+          <td>${fmtRp(b.harga_total)}</td>
+          <td>${badgeHTML(b.status)}</td>
+          <td><button class="btn-detail" onclick="bukaDetail(${b.id})">Detail</button></td>
+        </tr>`).join('');
+    }
+
+    // ===== DETAIL & UPDATE STATUS =====
+    function bukaDetail(id) {
+      const b = allBookings.find(x => x.id === id);
+      if (!b) return;
+      selectedBookingId = id;
+
+      document.getElementById('modalContent').innerHTML = `
+        <div class="detail-row"><span class="detail-label">Nomor Booking</span><span class="detail-val"><strong>${b.nomor_booking}</strong></span></div>
+        <div class="detail-row"><span class="detail-label">Nama</span><span class="detail-val">${b.nama_pelanggan}</span></div>
+        <div class="detail-row"><span class="detail-label">No. HP</span><span class="detail-val">${b.no_hp}</span></div>
+        <div class="detail-row"><span class="detail-label">Email</span><span class="detail-val">${b.email || '-'}</span></div>
+        <div class="detail-row"><span class="detail-label">Kendaraan</span><span class="detail-val">${b.merek_kendaraan}</span></div>
+        <div class="detail-row"><span class="detail-label">No. Polisi</span><span class="detail-val">${b.nopol}</span></div>
+        <div class="detail-row"><span class="detail-label">Jenis Motor</span><span class="detail-val">${b.jenis_motor}</span></div>
+        <div class="detail-row"><span class="detail-label">Layanan</span><span class="detail-val">${b.layanan}</span></div>
+        <div class="detail-row"><span class="detail-label">Keluhan</span><span class="detail-val">${b.keluhan || '-'}</span></div>
+        <div class="detail-row"><span class="detail-label">Tanggal</span><span class="detail-val">${fmtTgl(b.tanggal_servis)}</span></div>
+        <div class="detail-row"><span class="detail-label">Jam</span><span class="detail-val">${b.jam_servis?.slice(0,5)} WIB</span></div>
+        <div class="detail-row"><span class="detail-label">Harga Total</span><span class="detail-val"><strong>${fmtRp(b.harga_total)}</strong></span></div>
+        <div class="detail-row"><span class="detail-label">Status</span><span class="detail-val">${badgeHTML(b.status)}</span></div>
+      `;
+
+      document.getElementById('modalAction').innerHTML = `
+        <div style="margin-top:1rem;border-top:1px solid var(--abu);padding-top:1rem">
+          <label style="font-size:0.88rem;font-weight:600;color:var(--biru)">Update Status:</label>
+          <select class="status-select" id="statusSelect">
+            <option value="Menunggu Konfirmasi"  ${b.status==='Menunggu Konfirmasi'  ? 'selected':''}>Menunggu Konfirmasi</option>
+            <option value="Dikonfirmasi"          ${b.status==='Dikonfirmasi'          ? 'selected':''}>Dikonfirmasi</option>
+            <option value="Sedang Dikerjakan"     ${b.status==='Sedang Dikerjakan'     ? 'selected':''}>Sedang Dikerjakan</option>
+            <option value="Selesai"               ${b.status==='Selesai'               ? 'selected':''}>Selesai</option>
+            <option value="Dibatalkan"            ${b.status==='Dibatalkan'            ? 'selected':''}>Dibatalkan</option>
+          </select>
+          <button class="btn-update" onclick="updateStatus()">💾 Simpan Status</button>
+        </div>
+      `;
+
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    async function updateStatus() {
+      const status = document.getElementById('statusSelect').value;
+      try {
+        const res = await fetch(`${API}/booking/${selectedBookingId}/status`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ status })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          // Update local data
+          const idx = allBookings.findIndex(b => b.id === selectedBookingId);
+          if (idx !== -1) allBookings[idx].status = status;
+          tutupModal();
+          renderStats();
+          renderTabelDashboard();
+          renderTabelBookings();
+          alert('Status berhasil diupdate!');
+        } else {
+          alert('Gagal: ' + data.message);
+        }
+      } catch (err) {
+        alert('Gagal terhubung ke server');
+      }
+    }
+
+    function tutupModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+    function closeModal(e) {
+      if (e.target === document.getElementById('modalOverlay')) tutupModal();
+    }
+
+    function logout() {
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      window.location.href = 'login.html';
+    }
+
+
+
+    // Manajemen harga dimuat dari file terpisah
+
+    
+    // ===== BUKA WEBSITE DENGAN ANIMASI =====
+    function bukaWebsite(url, label) {
+      var overlay = document.getElementById('exitOverlay');
+      var elLabel = document.getElementById('exitLabel');
+      if (elLabel) elLabel.textContent = label || 'Membuka halaman...';
+
+      // Reset bar
+      var bar = document.getElementById('eoBar');
+      if (bar) { bar.style.animation = 'none'; bar.offsetHeight; bar.style.animation = ''; }
+
+      overlay.classList.add('show');
+      setTimeout(function() {
+        overlay.classList.add('visible');
+        setTimeout(function() {
+          window.open(url, '_blank');
+          setTimeout(function() {
+            overlay.classList.remove('visible');
+            setTimeout(function() {
+              overlay.classList.remove('show');
+            }, 400);
+          }, 800);
+        }, 1200);
+      }, 50);
+    }
+
+    // ===== SPLASH SCREEN =====
+    function runSplash(callback) {
+      const nama = adminUser.nama || 'Admin';
+      document.getElementById('splashName').textContent = nama;
+
+      const steps = [
+        { label: 'Memuat konfigurasi...', pct: 20 },
+        { label: 'Menghubungkan database...', pct: 45 },
+        { label: 'Mengambil data booking...', pct: 70 },
+        { label: 'Menyiapkan dashboard...', pct: 90 },
+        { label: 'Selesai!', pct: 100 },
+      ];
+
+      const fill  = document.getElementById('splashFill');
+      const label = document.getElementById('splashLabel');
+      let i = 0;
+
+      function nextStep() {
+        if (i >= steps.length) {
+          // Tutup splash
+          setTimeout(() => {
+            document.getElementById('splashScreen').classList.add('fade-out');
+            setTimeout(() => {
+              document.getElementById('splashScreen').style.display = 'none';
+              if (callback) callback();
+            }, 600);
+          }, 300);
+          return;
+        }
+        label.textContent = steps[i].label;
+        fill.style.width  = steps[i].pct + '%';
+        i++;
+        setTimeout(nextStep, i === steps.length ? 400 : 500);
+      }
+
+      setTimeout(nextStep, 300);
+    }
+
+    // Init
+    runSplash(loadData);
+  </script>
+  <script src="harga-manager.js"></script>
+</body>
+</html>

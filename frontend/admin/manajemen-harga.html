@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manajemen Harga — MyAstore60</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --kuning:#F5C400;--biru:#0A2D6E;--biru-medium:#1A4BA8;--biru-muda:#E8F0FF;
+      --putih:#FFFFFF;--abu:#E5E7EB;--abu-muda:#F7F8FA;--teks:#1A1A2E;--teks-muted:#6B7280;
+      --hijau:#22C55E;--merah:#EF4444;
+    }
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--abu-muda);color:var(--teks)}
+
+    /* TOPBAR */
+    .topbar{background:var(--biru);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#fff;letter-spacing:1px}
+    .topbar-logo span{color:var(--kuning)}
+    .topbar-actions{display:flex;gap:10px;align-items:center}
+    .btn-back{font-size:0.85rem;padding:6px 14px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:8px;cursor:pointer;font-family:inherit;transition:background 0.15s}
+    .btn-back:hover{background:rgba(255,255,255,0.2)}
+    .btn-tambah{font-size:0.88rem;padding:7px 16px;background:var(--kuning);color:var(--biru);border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:700;transition:background 0.15s}
+    .btn-tambah:hover{background:#D4A800}
+
+    /* CONTENT */
+    .content{padding:2rem;max-width:1200px;margin:0 auto}
+
+    /* STATS */
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem}
+    .stat-card{background:var(--putih);border-radius:12px;padding:1.25rem;box-shadow:0 2px 12px rgba(10,45,110,0.08);display:flex;justify-content:space-between;align-items:center}
+    .stat-num{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--biru)}
+    .stat-label{font-size:0.8rem;color:var(--teks-muted);margin-top:2px}
+    .stat-icon{font-size:1.8rem}
+
+    /* FILTER */
+    .filter-bar{display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .filter-tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .ftab{font-size:0.82rem;padding:6px 16px;border-radius:20px;border:1.5px solid var(--abu);background:var(--putih);color:var(--teks-muted);cursor:pointer;font-family:inherit;font-weight:500;transition:all 0.15s}
+    .ftab:hover{border-color:var(--biru);color:var(--biru)}
+    .ftab.active{background:var(--biru);color:#fff;border-color:var(--biru)}
+
+    /* GRID */
+    .harga-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem}
+
+    /* CARD */
+    .harga-card{background:var(--putih);border:1px solid var(--abu);border-radius:12px;padding:1.25rem;transition:box-shadow 0.15s;position:relative}
+    .harga-card:hover{box-shadow:0 4px 16px rgba(10,45,110,0.1)}
+    .harga-card.nonaktif{opacity:0.5}
+    .card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px}
+    .card-name{font-size:0.9rem;font-weight:600;color:var(--biru);flex:1}
+    .card-actions{display:flex;gap:5px;flex-shrink:0}
+    .btn-toggle{font-size:11px;padding:3px 8px;background:#F3F4F6;color:#6B7280;border:none;border-radius:5px;cursor:pointer;font-family:inherit}
+    .btn-edit{font-size:11px;padding:3px 8px;background:#DBEAFE;color:#1E40AF;border:none;border-radius:5px;cursor:pointer;font-family:inherit}
+    .btn-del{font-size:11px;padding:3px 8px;background:#FEE2E2;color:#991B1B;border:none;border-radius:5px;cursor:pointer;font-family:inherit}
+    .card-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+    .badge{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500}
+    .b-bebek{background:#EEEDFE;color:#3C3489}
+    .b-matic{background:#E1F5EE;color:#085041}
+    .b-kopling{background:#FAECE7;color:#712B13}
+    .b-semua{background:#E0E7FF;color:#3730A3}
+    .b-lengkap{background:#FEF3C7;color:#92400E}
+    .b-satuan{background:#F3F4F6;color:#6B7280}
+    .b-kecil{background:#F0FDF4;color:#166534}
+    .b-besar{background:#FFF7ED;color:#9A3412}
+    .card-prices{display:flex;align-items:center;gap:10px}
+    .price-normal{font-size:11px;color:#9CA3AF;text-decoration:line-through}
+    .price-promo{font-size:1rem;font-weight:700;color:#0a6644}
+    .price-diskon{font-size:11px;background:#DCFCE7;color:#14532D;padding:2px 7px;border-radius:8px;font-weight:600}
+    .card-desc{font-size:0.78rem;color:#9CA3AF;margin-top:6px}
+    .empty{text-align:center;padding:4rem;color:var(--teks-muted);grid-column:1/-1}
+    .empty-icon{font-size:3rem;margin-bottom:1rem}
+
+    /* MODAL */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal{background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+    .modal-head h3{font-size:1.1rem;font-weight:600;color:var(--biru)}
+    .modal-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--teks-muted)}
+    .form-group{margin-bottom:1rem}
+    .form-group label{display:block;font-size:0.82rem;font-weight:600;color:var(--biru);margin-bottom:4px}
+    .form-group input,.form-group select{width:100%;padding:0.65rem 0.9rem;border:1.5px solid var(--abu);border-radius:8px;font-size:0.9rem;font-family:inherit;outline:none;transition:border-color 0.2s}
+    .form-group input:focus,.form-group select:focus{border-color:var(--biru)}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .preview-diskon{background:#DCFCE7;border-radius:8px;padding:8px 12px;font-size:0.85rem;color:#14532D;margin-bottom:0.5rem;display:none}
+    .modal-actions{display:flex;gap:10px;margin-top:1.25rem}
+    .btn-simpan{flex:1;padding:0.75rem;background:var(--kuning);color:var(--biru);font-weight:700;border:none;border-radius:8px;cursor:pointer;font-size:0.95rem;font-family:inherit}
+    .btn-simpan:hover{background:#D4A800}
+    .btn-batal{padding:0.75rem 1.25rem;background:#F3F4F6;color:#6B7280;font-weight:600;border:none;border-radius:8px;cursor:pointer;font-family:inherit}
+    .btn-batal:hover{background:var(--abu)}
+
+    .loading{text-align:center;padding:3rem;color:var(--teks-muted)}
+
+
+
+    /* ===== FITUR DISKON ===== */
+    .diskon-toggle-wrap {
+      background: var(--abu-muda);
+      border: 1.5px solid var(--abu);
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .diskon-toggle-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 14px; cursor: pointer;
+    }
+    .diskon-toggle-label { display: flex; align-items: center; gap: 10px; }
+    .diskon-icon { font-size: 1.2rem; }
+
+    /* Toggle switch */
+    .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: #CBD5E1; border-radius: 24px;
+      transition: background 0.3s; cursor: pointer;
+    }
+    .toggle-slider:before {
+      content: ''; position: absolute;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #fff; left: 3px; top: 3px;
+      transition: transform 0.3s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .toggle-switch input:checked + .toggle-slider { background: var(--biru); }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+    /* Diskon panel */
+    .diskon-panel { padding: 0 14px 14px; }
+    .diskon-mode-row { display: flex; gap: 6px; margin-bottom: 12px; }
+    .mode-btn {
+      flex: 1; padding: 7px; border-radius: 8px;
+      border: 1.5px solid var(--abu); background: var(--putih);
+      font-family: inherit; font-size: 0.82rem; font-weight: 600;
+      color: var(--teks-muted); cursor: pointer; transition: all 0.15s;
+    }
+    .mode-btn.active { background: var(--biru); color: #fff; border-color: var(--biru); }
+
+    /* Input persentase */
+    .persen-input-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .persen-btn {
+      padding: 6px 10px; border-radius: 6px; border: 1.5px solid var(--abu);
+      background: var(--putih); font-family: inherit; font-size: 0.8rem;
+      font-weight: 600; cursor: pointer; color: var(--biru); white-space: nowrap;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .persen-btn:hover { background: var(--biru); color: #fff; border-color: var(--biru); }
+    .persen-display {
+      flex: 1; display: flex; align-items: center;
+      border: 1.5px solid var(--biru); border-radius: 8px; overflow: hidden;
+    }
+    .persen-display input {
+      flex: 1; border: none; padding: 8px 10px;
+      font-size: 1.1rem; font-weight: 700; color: var(--biru);
+      font-family: inherit; outline: none; text-align: center;
+    }
+    .persen-symbol {
+      padding: 0 10px 0 0; font-size: 1.1rem; font-weight: 700; color: var(--biru);
+    }
+    .persen-shortcuts { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px; }
+    .shortcut-btn {
+      padding: 4px 10px; border-radius: 20px; border: 1.5px solid var(--abu);
+      background: var(--putih); font-family: inherit; font-size: 0.78rem;
+      font-weight: 600; cursor: pointer; color: var(--teks-muted);
+      transition: all 0.15s;
+    }
+    .shortcut-btn:hover { background: var(--kuning); color: var(--biru); border-color: var(--kuning); }
+
+    /* Kalkulasi box */
+    .kalkulasi-box {
+      background: linear-gradient(135deg, var(--biru) 0%, var(--biru-medium) 100%);
+      border-radius: 10px; padding: 14px 16px; margin-top: 12px;
+    }
+    .kalk-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.88rem; color: rgba(255,255,255,0.8); padding: 4px 0;
+    }
+    .kalk-diskon { color: #FCA5A5; }
+    .kalk-divider { height: 1px; background: rgba(255,255,255,0.2); margin: 8px 0; }
+    .kalk-hasil { color: #fff; font-weight: 700; font-size: 1rem; }
+    .kalk-hasil span:last-child {
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: var(--kuning); letter-spacing: 0.5px;
+    }
+    .kalk-hemat {
+      font-size: 0.78rem; color: rgba(255,255,255,0.6); margin-top: 6px; text-align: center;
+    }
+    .kalk-hemat strong { color: var(--kuning); }
+
+
+    .req  { color:#EF4444; }
+    .opt  { color:#9CA3AF; font-weight:400; font-size:0.78rem; }
+    .form-divider { height:1px; background:var(--abu); margin:1rem 0; }
+    .field-hint { font-size:0.75rem; color:#9CA3AF; margin-top:4px; }
+
+    /* DISKON SECTION */
+    .diskon-section { background:var(--abu-muda); border:1.5px solid var(--abu); border-radius:10px; margin-bottom:1rem; overflow:hidden; }
+    .diskon-header { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; cursor:pointer; transition:background 0.15s; }
+    .diskon-header:hover { background:#EAECF0; }
+    .diskon-header-left { display:flex; align-items:center; gap:10px; }
+    .diskon-title { font-size:0.88rem; font-weight:600; color:var(--biru); }
+    .diskon-subtitle { font-size:0.75rem; color:var(--teks-muted); margin-top:1px; }
+    .diskon-chevron { color:var(--teks-muted); font-size:0.8rem; transition:transform 0.2s; }
+    .diskon-chevron.open { transform:rotate(180deg); }
+    #diskonBody { padding:0 14px 14px; }
+
+    /* PERSEN INPUT */
+    .persen-row { display:flex; flex-direction:column; gap:8px; }
+    .persen-input-box { display:flex; align-items:center; border:1.5px solid var(--biru); border-radius:8px; overflow:hidden; background:#fff; }
+    .persen-input-box input { flex:1; border:none; padding:10px 12px; font-size:1.2rem; font-weight:700; color:var(--biru); font-family:inherit; outline:none; }
+    .persen-sym { padding:0 14px 0 4px; font-size:1.2rem; font-weight:700; color:var(--biru); }
+    .persen-shortcuts { display:flex; gap:5px; flex-wrap:wrap; }
+    .sc-btn { padding:5px 12px; border-radius:20px; border:1.5px solid var(--abu); background:#fff; font-family:inherit; font-size:0.78rem; font-weight:600; color:var(--teks-muted); cursor:pointer; transition:all 0.15s; }
+    .sc-btn:hover { background:var(--kuning); color:var(--biru); border-color:var(--kuning); }
+    .sc-btn.active { background:var(--biru); color:#fff; border-color:var(--biru); }
+
+    /* KALKULASI BOX */
+    .kalk-box { background:linear-gradient(135deg,#0A2D6E 0%,#1A4BA8 100%); border-radius:10px; padding:14px 16px; margin:12px 0 10px; }
+    .kalk-row { display:flex; justify-content:space-between; font-size:0.88rem; color:rgba(255,255,255,0.75); padding:3px 0; }
+    .kalk-coret { color:#FCA5A5; }
+    .kalk-line { height:1px; background:rgba(255,255,255,0.2); margin:8px 0; }
+    .kalk-final { color:#fff; font-weight:700; font-size:0.95rem; }
+    .kalk-final span:last-child { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; color:#F5C400; }
+    .kalk-hemat { font-size:0.75rem; color:rgba(255,255,255,0.55); margin-top:6px; text-align:center; }
+    .kalk-hemat strong { color:#F5C400; }
+
+    .btn-hapus-diskon { font-size:0.8rem; padding:5px 12px; background:#FEE2E2; color:#991B1B; border:none; border-radius:6px; cursor:pointer; font-family:inherit; font-weight:500; transition:background 0.15s; }
+    .btn-hapus-diskon:hover { background:#991B1B; color:#fff; }
+
+    /* ===== SPLASH SCREEN ===== */
+    #splash {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #0A2D6E 0%, #1A4BA8 100%);
+      z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    #splash.hide { opacity: 0; transform: scale(1.04); pointer-events: none; }
+    .sp-gear { font-size: 3rem; animation: spSpin 2s linear infinite; margin-bottom: 1.25rem; }
+    @keyframes spSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    .sp-logo { font-family:'Bebas Neue',sans-serif; font-size: 2.8rem; color: #fff; letter-spacing: 2px; margin-bottom: 4px; }
+    .sp-logo span { color: #F5C400; }
+    .sp-sub { font-size: 0.85rem; color: rgba(255,255,255,0.55); margin-bottom: 2.5rem; }
+    .sp-label { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 8px; text-align: center; }
+    .sp-bar-wrap { width: 200px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 4px; overflow: hidden; margin-bottom: 1.5rem; }
+    .sp-bar { height: 100%; width: 0%; background: #F5C400; border-radius: 4px; transition: width 0.15s linear; }
+    .sp-dots { display: flex; gap: 6px; }
+    .sp-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); animation: spDot 1.2s ease infinite; }
+    .sp-dot:nth-child(2){animation-delay:0.2s}
+    .sp-dot:nth-child(3){animation-delay:0.4s}
+    @keyframes spDot { 0%,100%{background:rgba(255,255,255,0.3);transform:scale(1)} 50%{background:#F5C400;transform:scale(1.3)} }
+
+    /* ===== EXIT OVERLAY (saat pindah ke website) ===== */
+    #exitOverlay {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #0A2D6E 0%, #1A4BA8 100%);
+      z-index: 9999; display: none;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 1rem;
+      opacity: 0; transition: opacity 0.4s ease;
+    }
+    #exitOverlay.show { display: flex; }
+    #exitOverlay.visible { opacity: 1; }
+    .eo-text { font-family:'Bebas Neue',sans-serif; font-size: 1.8rem; color: #fff; letter-spacing: 1px; }
+    .eo-text span { color: #F5C400; }
+    .eo-sub { font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+
+    @media(max-width:600px){
+      .stats{grid-template-columns:1fr}
+      .form-row{grid-template-columns:1fr}
+      .content{padding:1rem}
+    }
+  </style>
+</head>
+<body>
+
+
+  <!-- SPLASH SCREEN -->
+  <div id="splash">
+    <div class="sp-gear">⚙</div>
+    <div class="sp-logo">My<span>Astore</span>60</div>
+    <div class="sp-sub">Manajemen Harga Bengkel</div>
+    <div class="sp-label" id="spLabel">Memuat data...</div>
+    <div class="sp-bar-wrap"><div class="sp-bar" id="spBar"></div></div>
+    <div class="sp-dots">
+      <div class="sp-dot"></div>
+      <div class="sp-dot"></div>
+      <div class="sp-dot"></div>
+    </div>
+  </div>
+
+  <!-- EXIT OVERLAY -->
+  <div id="exitOverlay">
+    <div class="sp-gear">⚙</div>
+    <div class="eo-text">My<span>Astore</span>60</div>
+    <div class="eo-sub">Membuka halaman website...</div>
+  </div>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">⚙ My<span>Astore</span>60 — Manajemen Harga</div>
+    <div class="topbar-actions">
+      <button class="btn-back" onclick="window.location.href='dashboard.html'">← Dashboard</button>
+      <button class="btn-tambah" onclick="bukaModalTambah()">＋ Tambah Paket</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat-card">
+        <div><div class="stat-num" id="statTotal">-</div><div class="stat-label">Total Paket Aktif</div></div>
+        <div class="stat-icon">📦</div>
+      </div>
+      <div class="stat-card">
+        <div><div class="stat-num" id="statLengkap">-</div><div class="stat-label">Paket Lengkap</div></div>
+        <div class="stat-icon">⭐</div>
+      </div>
+      <div class="stat-card">
+        <div><div class="stat-num" id="statSatuan">-</div><div class="stat-label">Paket Satuan</div></div>
+        <div class="stat-icon">🔧</div>
+      </div>
+    </div>
+
+    <!-- FILTER -->
+    <div class="filter-bar">
+      <div class="filter-tabs">
+        <button class="ftab active" onclick="filter('semua',this)">Semua</button>
+        <button class="ftab" onclick="filter('lengkap',this)">Paket Lengkap</button>
+        <button class="ftab" onclick="filter('satuan',this)">Paket Satuan</button>
+        <button class="ftab" onclick="filter('bebek',this)">Bebek</button>
+        <button class="ftab" onclick="filter('matic',this)">Matic</button>
+        <button class="ftab" onclick="filter('kopling',this)">Kopling</button>
+      </div>
+      <span id="jumlahPaket" style="font-size:0.82rem;color:var(--teks-muted)"></span>
+    </div>
+
+    <!-- GRID -->
+    <div class="harga-grid" id="hargaGrid">
+      <div class="loading">⏳ Memuat data paket...</div>
+    </div>
+
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalForm" onclick="closeModal(event)">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="modalTitle">Tambah Paket Baru</h3>
+        <button class="modal-close" onclick="tutupModal()">✕</button>
+      </div>
+
+      <!-- INFO DASAR -->
+      <div class="form-group">
+        <label>Nama Paket <span class="req">*</span></label>
+        <input type="text" id="fNama" placeholder="Contoh: Paket Service Lengkap Pro"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipe <span class="req">*</span></label>
+          <select id="fTipe">
+            <option value="lengkap">Paket Lengkap</option>
+            <option value="satuan">Paket Satuan</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Jenis Motor <span class="req">*</span></label>
+          <select id="fJenis">
+            <option value="bebek">Bebek</option>
+            <option value="matic">Matic</option>
+            <option value="kopling">Kopling</option>
+            <option value="semua">Semua</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Kapasitas CC <span class="req">*</span></label>
+        <select id="fCC">
+          <option value="kecil">Kecil (≤125/135cc)</option>
+          <option value="besar">Besar (≤250cc)</option>
+          <option value="semua">Semua CC</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Deskripsi Paket <span class="opt">(opsional)</span></label>
+        <input type="text" id="fDesk" placeholder="Contoh: Tune up, ganti oli, cek rem..."/>
+      </div>
+
+      <div class="form-divider"></div>
+
+      <!-- HARGA NORMAL -->
+      <div class="form-group">
+        <label>Harga Normal (Rp) <span class="req">*</span></label>
+        <input type="number" id="fNormal" placeholder="Contoh: 250000" min="0" oninput="hitungHarga()"/>
+      </div>
+
+      <!-- DISKON (OPSIONAL) -->
+      <div class="diskon-section">
+        <div class="diskon-header" onclick="toggleDiskon()">
+          <div class="diskon-header-left">
+            <span>🏷️</span>
+            <div>
+              <div class="diskon-title">Tambahkan Diskon <span class="opt">(opsional)</span></div>
+              <div class="diskon-subtitle">Admin boleh tidak mengisi diskon</div>
+            </div>
+          </div>
+          <div class="diskon-chevron" id="diskonChevron">▼</div>
+        </div>
+
+        <div id="diskonBody" style="display:none">
+          <!-- INPUT PERSEN -->
+          <div class="form-group" style="margin-top:12px">
+            <label>Persentase Diskon (%)</label>
+            <div class="persen-row">
+              <div class="persen-input-box">
+                <input type="number" id="fPersen" placeholder="0" min="0" max="99" oninput="hitungHarga()"/>
+                <span class="persen-sym">%</span>
+              </div>
+              <div class="persen-shortcuts">
+                <button type="button" class="sc-btn" onclick="setPersen(5)">5%</button>
+                <button type="button" class="sc-btn" onclick="setPersen(10)">10%</button>
+                <button type="button" class="sc-btn" onclick="setPersen(15)">15%</button>
+                <button type="button" class="sc-btn" onclick="setPersen(20)">20%</button>
+                <button type="button" class="sc-btn" onclick="setPersen(25)">25%</button>
+                <button type="button" class="sc-btn" onclick="setPersen(30)">30%</button>
+                <button type="button" class="sc-btn" onclick="setPersen(50)">50%</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- KETERANGAN DISKON / PROMO EVENT -->
+          <div class="form-group">
+            <label>Keterangan Promo <span class="opt">(opsional)</span></label>
+            <input type="text" id="fKetDiskon" placeholder="Contoh: Promo Hari Natal, Diskon Kemerdekaan, dll"/>
+            <div class="field-hint">💡 Keterangan ini akan tampil ke pelanggan saat booking</div>
+          </div>
+
+          <!-- PREVIEW HASIL -->
+          <div class="kalk-box" id="kalkBox" style="display:none">
+            <div class="kalk-row">
+              <span>Harga Normal</span>
+              <span id="kNormal">Rp 0</span>
+            </div>
+            <div class="kalk-row kalk-coret">
+              <span id="kPctLabel">Diskon 0%</span>
+              <span id="kPotongan">− Rp 0</span>
+            </div>
+            <div class="kalk-line"></div>
+            <div class="kalk-row kalk-final">
+              <span>💰 Harga Setelah Diskon</span>
+              <span id="kHasil">Rp 0</span>
+            </div>
+            <div class="kalk-hemat">Pelanggan hemat <strong id="kHemat">Rp 0</strong></div>
+          </div>
+
+          <!-- HAPUS DISKON -->
+          <button type="button" class="btn-hapus-diskon" onclick="hapusDiskon()">✕ Hapus Diskon</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-batal" onclick="tutupModal()">Batal</button>
+        <button class="btn-simpan" onclick="simpan()">💾 Simpan Paket</button>
+      </div>
+    </div>
+  </div>
+
+    <script>
+    var API      = 'http://localhost:3000/api';
+    var token    = localStorage.getItem('admin_token');
+    var services = [];
+    var editId   = null;
+    var aktifFilter = 'semua';
+
+    if (!token) window.location.href = 'login.html';
+
+    function fmtRp(n) { return 'Rp ' + (n||0).toLocaleString('id-ID'); }
+
+    // ===== LOAD DATA =====
+    function load() {
+      document.getElementById('hargaGrid').innerHTML = '<div class="loading">⏳ Memuat data paket...</div>';
+      fetch(API + '/services/all', { headers:{ 'Authorization':'Bearer ' + token } })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          services = d.services || [];
+          renderStats();
+          render();
+        })
+        .catch(function(){
+          document.getElementById('hargaGrid').innerHTML = '<div class="loading">❌ Gagal terhubung ke server</div>';
+        });
+    }
+
+    function renderStats() {
+      var aktif = services.filter(function(s){ return s.is_active; });
+      document.getElementById('statTotal').textContent   = aktif.length;
+      document.getElementById('statLengkap').textContent = aktif.filter(function(s){return s.tipe==='lengkap';}).length;
+      document.getElementById('statSatuan').textContent  = aktif.filter(function(s){return s.tipe==='satuan';}).length;
+    }
+
+    function filter(f, btn) {
+      aktifFilter = f;
+      document.querySelectorAll('.ftab').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      render();
+    }
+
+    function render() {
+      var grid = document.getElementById('hargaGrid');
+      var data = services;
+      if (aktifFilter==='lengkap')  data = services.filter(function(s){return s.tipe==='lengkap';});
+      else if (aktifFilter==='satuan')  data = services.filter(function(s){return s.tipe==='satuan';});
+      else if (aktifFilter==='bebek')   data = services.filter(function(s){return s.jenis_motor==='bebek';});
+      else if (aktifFilter==='matic')   data = services.filter(function(s){return s.jenis_motor==='matic';});
+      else if (aktifFilter==='kopling') data = services.filter(function(s){return s.jenis_motor==='kopling';});
+
+      document.getElementById('jumlahPaket').textContent = data.length + ' paket';
+
+      if (data.length === 0) {
+        grid.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><p>Tidak ada paket untuk filter ini</p></div>';
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < data.length; i++) {
+        var s = data[i];
+        var adaDiskon  = s.harga_promo && s.harga_promo < s.harga_normal;
+        var diskonPct  = adaDiskon ? Math.round((1 - s.harga_promo/s.harga_normal)*100) : 0;
+        var ccLabel    = s.cc==='kecil' ? '≤125cc' : s.cc==='besar' ? '≤250cc' : s.cc;
+
+        html += '<div class="harga-card' + (s.is_active ? '' : ' nonaktif') + '">';
+        html += '<div class="card-head">';
+        html += '<div class="card-name">' + s.nama_paket + '</div>';
+        html += '<div class="card-actions">';
+        html += '<button class="btn-toggle" onclick="toggleAktif(' + s.id + ',' + s.is_active + ')" title="' + (s.is_active?'Nonaktifkan':'Aktifkan') + '">' + (s.is_active?'👁':'🚫') + '</button>';
+        html += '<button class="btn-edit" onclick="bukaEdit(' + s.id + ')">✏️</button>';
+        html += '<button class="btn-del" onclick="hapus(' + s.id + ')">🗑</button>';
+        html += '</div></div>';
+        html += '<div class="card-badges">';
+        html += '<span class="badge b-' + s.jenis_motor + '">' + s.jenis_motor + '</span>';
+        html += '<span class="badge b-' + s.tipe + '">' + s.tipe + '</span>';
+        html += '<span class="badge b-' + s.cc + '">' + ccLabel + '</span>';
+        if (adaDiskon && diskonPct > 0) html += '<span class="badge" style="background:#DCFCE7;color:#14532D">-' + diskonPct + '%</span>';
+        html += '</div>';
+        html += '<div class="card-prices">';
+        if (adaDiskon) {
+          html += '<span class="price-normal">' + fmtRp(s.harga_normal) + '</span>';
+          html += '<span class="price-promo">' + fmtRp(s.harga_promo) + '</span>';
+          html += '<span class="price-diskon">-' + diskonPct + '%</span>';
+        } else {
+          html += '<span class="price-promo">' + fmtRp(s.harga_normal) + '</span>';
+          html += '<span style="font-size:0.75rem;color:#9CA3AF;margin-left:4px">Tanpa diskon</span>';
+        }
+        html += '</div>';
+        // Tampilkan keterangan diskon jika ada
+        if (s.deskripsi) html += '<div class="card-desc">📝 ' + s.deskripsi + '</div>';
+        html += '</div>';
+      }
+      grid.innerHTML = html;
+    }
+
+    // ===== ALGORITMA DISKON =====
+    function toggleDiskon() {
+      var body     = document.getElementById('diskonBody');
+      var chevron  = document.getElementById('diskonChevron');
+      var isOpen   = body.style.display !== 'none';
+      body.style.display    = isOpen ? 'none' : 'block';
+      chevron.className     = isOpen ? 'diskon-chevron' : 'diskon-chevron open';
+      if (isOpen) hapusDiskon();
+    }
+
+    function hitungHarga() {
+      var normal = parseInt(document.getElementById('fNormal').value) || 0;
+      var persen = parseFloat(document.getElementById('fPersen').value) || 0;
+
+      // Update shortcut button aktif
+      document.querySelectorAll('.sc-btn').forEach(function(b){
+        b.classList.toggle('active', parseInt(b.textContent) === persen);
+      });
+
+      if (normal <= 0 || persen <= 0 || persen >= 100) {
+        document.getElementById('kalkBox').style.display = 'none';
+        return;
+      }
+
+      var potongan = Math.round(normal * persen / 100);
+      var hasil    = normal - potongan;
+
+      document.getElementById('kalkBox').style.display   = 'block';
+      document.getElementById('kNormal').textContent     = fmtRp(normal);
+      document.getElementById('kPctLabel').textContent   = 'Diskon ' + persen + '%';
+      document.getElementById('kPotongan').textContent   = '− ' + fmtRp(potongan);
+      document.getElementById('kHasil').textContent      = fmtRp(hasil);
+      document.getElementById('kHemat').textContent      = fmtRp(potongan);
+    }
+
+    function setPersen(pct) {
+      document.getElementById('fPersen').value = pct;
+      hitungHarga();
+    }
+
+    function hapusDiskon() {
+      document.getElementById('fPersen').value          = '';
+      document.getElementById('fKetDiskon').value       = '';
+      document.getElementById('kalkBox').style.display  = 'none';
+      document.querySelectorAll('.sc-btn').forEach(function(b){ b.classList.remove('active'); });
+    }
+
+    function getHargaPromo(normal) {
+      var persen = parseFloat(document.getElementById('fPersen').value) || 0;
+      if (persen > 0 && persen < 100) {
+        return normal - Math.round(normal * persen / 100);
+      }
+      return null; // tidak ada diskon
+    }
+
+    // ===== MODAL =====
+    function resetModal() {
+      document.getElementById('fNama').value       = '';
+      document.getElementById('fTipe').value       = 'lengkap';
+      document.getElementById('fJenis').value      = 'bebek';
+      document.getElementById('fCC').value         = 'kecil';
+      document.getElementById('fNormal').value     = '';
+      document.getElementById('fDesk').value       = '';
+      document.getElementById('fPersen').value     = '';
+      document.getElementById('fKetDiskon').value  = '';
+      document.getElementById('kalkBox').style.display   = 'none';
+      document.getElementById('diskonBody').style.display = 'none';
+      document.getElementById('diskonChevron').className = 'diskon-chevron';
+      document.querySelectorAll('.sc-btn').forEach(function(b){ b.classList.remove('active'); });
+    }
+
+    function bukaModalTambah() {
+      editId = null;
+      resetModal();
+      document.getElementById('modalTitle').textContent = '＋ Tambah Paket Baru';
+      document.getElementById('modalForm').classList.add('open');
+    }
+
+    function bukaEdit(id) {
+      var s = null;
+      for (var i = 0; i < services.length; i++) { if (services[i].id===id){ s=services[i]; break; } }
+      if (!s) return;
+      editId = id;
+      resetModal();
+
+      document.getElementById('modalTitle').textContent = '✏️ Edit Paket';
+      document.getElementById('fNama').value            = s.nama_paket;
+      document.getElementById('fTipe').value            = s.tipe;
+      document.getElementById('fJenis').value           = s.jenis_motor;
+      document.getElementById('fCC').value              = s.cc;
+      document.getElementById('fNormal').value          = s.harga_normal;
+      document.getElementById('fDesk').value            = s.deskripsi || '';
+
+      // Kalau ada diskon sebelumnya
+      if (s.harga_promo && s.harga_promo < s.harga_normal) {
+        var pct = Math.round((1 - s.harga_promo/s.harga_normal)*100);
+        document.getElementById('fPersen').value          = pct;
+        document.getElementById('diskonBody').style.display = 'block';
+        document.getElementById('diskonChevron').className = 'diskon-chevron open';
+        hitungHarga();
+      }
+
+      document.getElementById('modalForm').classList.add('open');
+    }
+
+    function simpan() {
+      var nama   = document.getElementById('fNama').value.trim();
+      var tipe   = document.getElementById('fTipe').value;
+      var jenis  = document.getElementById('fJenis').value;
+      var cc     = document.getElementById('fCC').value;
+      var normal = parseInt(document.getElementById('fNormal').value);
+      var desk   = document.getElementById('fDesk').value.trim();
+      var ketDis = document.getElementById('fKetDiskon').value.trim();
+
+      if (!nama)   { alert('Nama paket wajib diisi!'); return; }
+      if (!normal) { alert('Harga normal wajib diisi!'); return; }
+
+      // Hitung harga promo — boleh null jika tidak ada diskon
+      var promo = getHargaPromo(normal);
+
+      // Gabungkan keterangan diskon ke deskripsi jika ada
+      var deskFinal = desk;
+      if (ketDis) deskFinal = (desk ? desk + ' | ' : '') + '🏷️ ' + ketDis;
+
+      var url    = editId ? API+'/services/'+editId : API+'/services';
+      var method = editId ? 'PUT' : 'POST';
+      var body   = {
+        nama_paket:  nama,
+        tipe:        tipe,
+        jenis_motor: jenis,
+        cc:          cc,
+        harga_normal: normal,
+        harga_promo:  promo !== null ? promo : normal, // kalau tidak ada diskon, promo = normal
+        deskripsi:   deskFinal || null,
+        is_active:   1
+      };
+
+      fetch(url, {
+        method: method,
+        headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
+        body: JSON.stringify(body)
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(){
+        tutupModal();
+        load();
+        alert(editId ? '✅ Paket berhasil diupdate!' : '✅ Paket baru berhasil ditambahkan!');
+      })
+      .catch(function(){ alert('Gagal terhubung ke server'); });
+    }
+
+    function hapus(id) {
+      if (!confirm('Hapus paket ini? Tindakan ini tidak bisa dibatalkan!')) return;
+      fetch(API+'/services/'+id, { method:'DELETE', headers:{'Authorization':'Bearer '+token} })
+        .then(function(){ load(); alert('✅ Paket berhasil dihapus!'); })
+        .catch(function(){ alert('Gagal terhubung ke server'); });
+    }
+
+    function toggleAktif(id, aktif) {
+      var s = null;
+      for (var i = 0; i < services.length; i++) { if (services[i].id===id){ s=services[i]; break; } }
+      if (!s) return;
+      fetch(API+'/services/'+id, {
+        method: 'PUT',
+        headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
+        body: JSON.stringify({ nama_paket:s.nama_paket, tipe:s.tipe, jenis_motor:s.jenis_motor, cc:s.cc, harga_normal:s.harga_normal, harga_promo:s.harga_promo, deskripsi:s.deskripsi, is_active:aktif?0:1 })
+      })
+      .then(function(){ load(); })
+      .catch(function(){ alert('Gagal terhubung ke server'); });
+    }
+
+    function tutupModal() { document.getElementById('modalForm').classList.remove('open'); }
+    function closeModal(e) { if (e.target===document.getElementById('modalForm')) tutupModal(); }
+
+    // ===== SPLASH =====
+    // ===== SPLASH SCREEN =====
+    function jalankanSplash(callback) {
+      var steps = [
+        { label: 'Memuat konfigurasi...', pct: 25 },
+        { label: 'Menghubungkan database...', pct: 50 },
+        { label: 'Mengambil data paket...', pct: 75 },
+        { label: 'Menyiapkan tampilan...', pct: 95 },
+        { label: 'Selesai!', pct: 100 },
+      ];
+      var i = 0;
+      var bar   = document.getElementById('spBar');
+      var label = document.getElementById('spLabel');
+
+      function next() {
+        if (i >= steps.length) {
+          setTimeout(function() {
+            document.getElementById('splash').classList.add('hide');
+            setTimeout(function() {
+              document.getElementById('splash').style.display = 'none';
+              if (callback) callback();
+            }, 600);
+          }, 200);
+          return;
+        }
+        label.textContent = steps[i].label;
+        bar.style.width   = steps[i].pct + '%';
+        i++;
+        setTimeout(next, i === steps.length ? 300 : 450);
+      }
+      setTimeout(next, 200);
+    }
+
+    // Init
+    jalankanSplash(load);
+  </script>
+</body>
+</html>
