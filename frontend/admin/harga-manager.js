@@ -9,7 +9,7 @@ function loadHarga() {
   if (grid) grid.innerHTML = '<div class="harga-empty">Memuat data paket...</div>';
 
   var token = localStorage.getItem('admin_token');
-  fetch('http://localhost:3000/api/services/all', {
+  fetch('https://myastore60-production.up.railway.app/api/services/all', {
     headers: { 'Authorization': 'Bearer ' + token }
   })
   .then(function(res) { return res.json(); })
@@ -167,7 +167,7 @@ function simpanPaket() {
 
   var token   = localStorage.getItem('admin_token');
   var payload = { nama_paket: nama, tipe: tipe, jenis_motor: jenis, cc: cc, harga_normal: normal, harga_promo: promo, deskripsi: desk, is_active: 1 };
-  var url     = editServiceId ? 'http://localhost:3000/api/services/' + editServiceId : 'http://localhost:3000/api/services';
+  var url     = editServiceId ? 'https://myastore60-production.up.railway.app/api/services/' + editServiceId : 'https://myastore60-production.up.railway.app/api/services';
   var method  = editServiceId ? 'PUT' : 'POST';
 
   fetch(url, {
@@ -187,7 +187,7 @@ function simpanPaket() {
 function hapusPaket(id, nama) {
   if (!confirm('Hapus paket "' + nama + '"? Tindakan ini tidak bisa dibatalkan!')) return;
   var token = localStorage.getItem('admin_token');
-  fetch('http://localhost:3000/api/services/' + id, {
+  fetch('https://myastore60-production.up.railway.app/api/services/' + id, {
     method: 'DELETE',
     headers: { 'Authorization': 'Bearer ' + token }
   })
@@ -203,7 +203,7 @@ function toggleAktif(id, isAktif) {
   }
   if (!s) return;
   var token = localStorage.getItem('admin_token');
-  fetch('http://localhost:3000/api/services/' + id, {
+  fetch('https://myastore60-production.up.railway.app/api/services/' + id, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
     body: JSON.stringify({

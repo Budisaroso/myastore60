@@ -1,6 +1,6 @@
 // booking.js — MyAstore60 (Terhubung ke Backend API)
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://myastore60-production.up.railway.app/api';
 
 let currentStep = 1;
 let selectedJam  = '';
